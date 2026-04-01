@@ -25,7 +25,7 @@ SCRIPT_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
 # App/service name
 APPNAME="minkipi"
 INSTALL_PATH="/usr/local/$APPNAME"
-SRC_PATH="$SCRIPT_DIR/../src"
+SRC_PATH="$( cd "$SCRIPT_DIR/../src" && pwd )"
 BINPATH="/usr/local/bin"
 VENV_PATH="$INSTALL_PATH/venv_$APPNAME"
 
