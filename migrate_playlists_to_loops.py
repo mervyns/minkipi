@@ -8,7 +8,7 @@ This script:
 3. Removes display_mode setting
 4. Writes the updated configuration back to device.json
 
-Run this script once before deploying the new DashPi version.
+Run this script once before deploying the new Minkipi version.
 """
 
 import json
@@ -147,7 +147,7 @@ def main():
         sys.exit(1)
 
     print("=" * 60)
-    print("DashPi Playlist → Loop Migration")
+    print("Minkipi Playlist → Loop Migration")
     print("=" * 60)
 
     try:
@@ -162,8 +162,8 @@ def main():
 
         print("\nNext steps:")
         print("1. Review the migrated config at:", config_path)
-        print("2. Deploy the updated DashPi code")
-        print("3. Restart the dashpi service")
+        print("2. Deploy the updated Minkipi code")
+        print("3. Restart the minkipi service")
 
     except Exception as e:
         print(f"\n✗ Migration failed: {e}")

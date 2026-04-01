@@ -1,13 +1,13 @@
 [Unit]
-Description=DashPi App
-After=dashpi-splash.service
+Description=Minkipi App
+After=minkipi-splash.service
 Wants=network-online.target
 
 [Service]
 User=root
-RuntimeDirectory=dashpi
-WorkingDirectory=/run/dashpi
-ExecStart=/usr/local/bin/dashpi run
+RuntimeDirectory=minkipi
+WorkingDirectory=/run/minkipi
+ExecStart=/usr/local/bin/minkipi run
 Restart=on-failure
 RestartSec=60
 KillSignal=SIGINT

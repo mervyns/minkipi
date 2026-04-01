@@ -1,7 +1,7 @@
 """
-APOD Plugin for DashPi
+APOD Plugin for Minkipi
 This plugin fetches the Astronomy Picture of the Day (APOD) from NASA's API
-and displays it on the DashPi device. It supports optional manual date selection or random dates.
+and displays it on the Minkipi device. It supports optional manual date selection or random dates.
 For the API key, set `NASA_SECRET={API_KEY}` in your .env file.
 """
 

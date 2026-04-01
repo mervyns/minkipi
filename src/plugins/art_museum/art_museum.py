@@ -1,5 +1,5 @@
 """
-Art Museum Plugin for DashPi
+Art Museum Plugin for Minkipi
 Displays random artworks from the Metropolitan Museum of Art and the
 Art Institute of Chicago. No API keys required.
 """

@@ -1,5 +1,5 @@
 """
-Adaptive Image Loader for DashPi
+Adaptive Image Loader for Minkipi
 Centralized image loading and processing with device-aware optimizations.
 
 Automatically uses memory-efficient strategies on low-RAM devices (Pi Zero)
@@ -85,7 +85,7 @@ class AdaptiveImageLoader:
 
     # Default headers to avoid 403 errors from sites that block requests without User-Agent
     DEFAULT_HEADERS = {
-        'User-Agent': 'DashPi/1.0 (https://github.com/fatihak/DashPi/) Python-requests'
+        'User-Agent': 'Minkipi/1.0 (https://github.com/fatihak/Minkipi/) Python-requests'
     }
 
     # Max image size limits (in megapixels) to prevent OOM crashes

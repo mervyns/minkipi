@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to DashPi are documented here.
+All notable changes to Minkipi are documented here.
 
 ## [Unreleased]
 
@@ -59,12 +59,12 @@ Full codebase audit across 24 files. Focus: reliability, security, and performan
 
 ## [2.0.0] — 2026-02-15
 
-Major release: DashPi and InkyPi unified into a single codebase with automatic display detection.
+Major release: unified LCD and e-ink support into a single codebase with automatic display detection.
 
 ### Added
 - **Multi-display support**: Single codebase runs on both LCD (Waveshare) and e-ink (Pimoroni Inky) displays.
 - **Display auto-detection**: Inky detected via I2C first, then LCD via framebuffer, then mock.
-- **WiFi provisioning**: Hotspot + captive portal for headless setup. SSID `{device-name}-Setup`, password `dashpisetup`. Android/iOS/Windows detection and auto-redirect. Safe AP mode (never disconnects WiFi first).
+- **WiFi provisioning**: Hotspot + captive portal for headless setup. SSID `{device-name}-Setup`, password `minkipisetup`. Android/iOS/Windows detection and auto-redirect. Safe AP mode (never disconnects WiFi first).
 - **Crossfade transitions**: Smooth 10-frame crossfade between plugin rotations on LCD (smoothstep easing, 800ms). Toggle in Settings. E-ink skipped.
 - **Config export/import**: ZIP backup/restore on Settings page. Includes `device.json`, optional `.env`, optional saved images. Validates on import, backs up to `.bak`. Upload limit 64MB.
 - **Dashboard brightness slider**: Temporary override that auto-reverts on next brightness schedule period. Instant LCD feedback via `reapply_brightness()`.
@@ -104,7 +104,7 @@ Major release: DashPi and InkyPi unified into a single codebase with automatic d
 
 ## [1.0] — 2025
 
-Initial public release of DashPi — LCD display dashboard for Raspberry Pi.
+Initial public release of Minkipi — LCD display dashboard for Raspberry Pi.
 
 ### Included at launch
 - Plugin loop rotation with configurable interval.

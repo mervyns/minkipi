@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""DashPi — main Flask application entry point.
+"""Minkipi — main Flask application entry point.
 
 Initializes the display, config, plugin system, and refresh task, then serves
 the web UI via Waitress. Supports --dev mode for local development on port 8080.
@@ -38,7 +38,7 @@ from waitress import serve
 logger = logging.getLogger(__name__)
 
 # Parse command line arguments
-parser = argparse.ArgumentParser(description='DashPi Display Server')
+parser = argparse.ArgumentParser(description='Minkipi Display Server')
 parser.add_argument('--dev', action='store_true', help='Run in development mode')
 args = parser.parse_args()
 
@@ -68,10 +68,10 @@ refresh_task = RefreshTask(device_config, display_manager, wifi_manager)
 
 load_plugins(device_config.get_plugins())
 
-# Determine the device name: config > hostname > "DashPi"
+# Determine the device name: config > hostname > "Minkipi"
 _device_name = device_config.get_config("device_name", default="")
 if not _device_name:
-    _device_name = socket.gethostname() or "DashPi"
+    _device_name = socket.gethostname() or "Minkipi"
     # Strip .local suffix if present (mDNS adds it automatically)
     if _device_name.endswith(".local"):
         _device_name = _device_name[:-6]
@@ -98,8 +98,8 @@ app.register_blueprint(wifi_bp)
 @app.context_processor
 def inject_globals():
     from blueprints.main import get_version
-    device_name = device_config.get_config("device_name", default="DashPi")
-    return dict(project_name="DashPi", device_name=device_name, version=get_version())
+    device_name = device_config.get_config("device_name", default="Minkipi")
+    return dict(project_name="Minkipi", device_name=device_name, version=get_version())
 
 # Security headers
 @app.after_request
@@ -139,7 +139,7 @@ if __name__ == '__main__':
             # No WiFi — enter AP mode and show setup screen
             logger.info("No WiFi at startup, entering AP mode")
             from utils.wifi_display import generate_wifi_setup_image
-            device_name = device_config.get_config("device_name", default="DashPi")
+            device_name = device_config.get_config("device_name", default="Minkipi")
             ap_ssid = wifi_manager.get_ap_ssid(device_name)
             wifi_manager.start_ap_mode(device_name)
             portal_url = f"http://{wifi_manager.get_hotspot_ip()}/wifi"
@@ -153,7 +153,7 @@ if __name__ == '__main__':
         # Not first boot, but no WiFi — enter AP mode
         logger.info("No WiFi detected, entering AP mode")
         from utils.wifi_display import generate_wifi_setup_image
-        device_name = device_config.get_config("device_name", default="DashPi")
+        device_name = device_config.get_config("device_name", default="Minkipi")
         ap_ssid = wifi_manager.get_ap_ssid(device_name)
         wifi_manager.start_ap_mode(device_name)
         portal_url = f"http://{wifi_manager.get_hotspot_ip()}/wifi"

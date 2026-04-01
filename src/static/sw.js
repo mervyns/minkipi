@@ -1,5 +1,5 @@
-// DashPi Service Worker
-const CACHE_NAME = 'dashpi-v9';
+// Minkipi Service Worker
+const CACHE_NAME = 'minkipi-v9';
 const STATIC_ASSETS = [
   '/',
   '/static/styles/main.css',

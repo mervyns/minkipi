@@ -1,6 +1,6 @@
-# DashPi Fork - Complete Comparison from Original
+# Minkipi Fork - Complete Comparison from Original
 
-**Original Repository:** [fatihak/InkyPi](https://github.com/fatihak/InkyPi)
+**Original Repository:** [fatihak/Minkipi](https://github.com/fatihak/Minkipi)
 **Upstream Commit:** `fb71cc3` (Handle background image color for grayscale images)
 **Fork Date:** February 2026
 **Current Version:** v2.1.0+
@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-This fork replaces DashPi's complex **Playlist system** with a simpler **Loop system**. The primary goals were **simplicity**, **stability**, and **enhanced functionality** for personal use on a Raspberry Pi Zero with Inky Impression 7.3" display.
+This fork replaces Minkipi's complex **Playlist system** with a simpler **Loop system**. The primary goals were **simplicity**, **stability**, and **enhanced functionality** for personal use on a Raspberry Pi Zero with Inky Impression 7.3" display.
 
 | Aspect | Original (fatihak) | This Fork |
 |--------|-------------------|-----------|
@@ -24,7 +24,7 @@ This fork replaces DashPi's complex **Playlist system** with a simpler **Loop sy
 
 ---
 
-## What the Original DashPi Had
+## What the Original Minkipi Had
 
 ### Display System
 - **Playlists only:** Time-windowed collections with per-plugin instance settings
@@ -255,7 +255,7 @@ MemoryMax=350M
 | `src/utils/image_loader.py` | OOM protection |
 | `src/blueprints/main.py` | Skip API, enhanced next_change_time API |
 | `src/config.py` | Simplified, removed playlist methods |
-| `src/dashpi.py` | Updated blueprint registration |
+| `src/minkipi.py` | Updated blueprint registration |
 
 ---
 
@@ -263,7 +263,7 @@ MemoryMax=350M
 
 **Additional Python Package:**
 ```bash
-sudo /usr/local/dashpi/venv_dashpi/bin/pip install yfinance
+sudo /usr/local/minkipi/venv_minkipi/bin/pip install yfinance
 ```
 
 **Critical Deployment Note:**

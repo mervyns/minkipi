@@ -1,6 +1,6 @@
 """WiFi setup display — generates the 'No WiFi' screen shown on the physical display.
 
-When DashPi enters AP hotspot mode, this module renders a PIL image with
+When Minkipi enters AP hotspot mode, this module renders a PIL image with
 setup instructions and a QR code for the captive portal URL. Works on
 both LCD and e-ink displays.
 """

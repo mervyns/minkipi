@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ device_name }} - DashPi v{{ version }} - Loops</title>
+    <title>{{ device_name }} - Minkipi v{{ version }} - Loops</title>
     <script>
         (function() {
-            const theme = localStorage.getItem('dashpi-v2-theme') ||
+            const theme = localStorage.getItem('minkipi-v2-theme') ||
                          (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             if (theme === 'dark') {
                 document.documentElement.setAttribute('data-theme', 'dark');
@@ -24,7 +24,7 @@
             <div style="display: flex; align-items: center; gap: 12px;">
                 <button onclick="window.location.href='{{ url_for('main.main_page') }}'" class="back-button">← Back to Main</button>
                 <div class="title-block">
-                    <span class="project-label">{{ device_name }} - DashPi v{{ version }}</span>
+                    <span class="project-label">{{ device_name }} - Minkipi v{{ version }}</span>
                     <h1>Loops</h1>
                 </div>
             </div>
@@ -235,7 +235,7 @@
     <script>
     // Exposed as window.loopsStatus so refreshPluginNow can interact with it
     window.loopsStatus = (function() {
-        const STORAGE_KEY = 'dashpi-v2-show-loops-status';
+        const STORAGE_KEY = 'minkipi-v2-show-loops-status';
         const toggle = document.getElementById('showLoopsStatus');
         const bar = document.getElementById('loopsStatus');
         const icon = document.getElementById('loopsStatusIcon');

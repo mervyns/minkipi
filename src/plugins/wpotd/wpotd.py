@@ -1,7 +1,7 @@
 """
-Wpotd Plugin for DashPi
+Wpotd Plugin for Minkipi
 This plugin fetches the Wikipedia Picture of the Day (Wpotd) from Wikipedia's API
-and displays it on the DashPi device.
+and displays it on the Minkipi device.
 
 It supports optional manual date selection or random dates and can resize the image to fit the device's dimensions.
 
@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 class Wpotd(BasePlugin):
     """Fetches Wikipedia's Picture of the Day and renders it with an optional title overlay."""
 
-    HEADERS = {'User-Agent': 'DashPi/1.0'}
+    HEADERS = {'User-Agent': 'Minkipi/1.0'}
     API_URL = "https://en.wikipedia.org/w/api.php"
 
     def generate_settings_template(self) -> Dict[str, Any]:

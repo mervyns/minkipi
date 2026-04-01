@@ -1,5 +1,5 @@
 """
-HTTP Client with Connection Pooling for DashPi
+HTTP Client with Connection Pooling for Minkipi
 
 Provides a shared requests.Session() instance for all plugins to use.
 Benefits:
@@ -41,9 +41,9 @@ def get_http_session() -> requests.Session:
         logger.debug("Initializing shared HTTP session with connection pooling")
         _HTTP_SESSION = requests.Session()
 
-        # Set common headers for all DashPi requests
+        # Set common headers for all Minkipi requests
         _HTTP_SESSION.headers.update({
-            'User-Agent': 'DashPi/2.0 (https://github.com/SHagler2/DashPi/)'
+            'User-Agent': 'Minkipi/2.0 (https://github.com/SHagler2/Minkipi/)'
         })
 
         # Configure connection pool with proper retry strategy

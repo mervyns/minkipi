@@ -256,7 +256,7 @@ def apply_update():
 
         # Schedule a service restart (delayed so this response can be sent first)
         subprocess.Popen(
-            ['bash', '-c', 'sleep 2 && sudo systemctl restart dashpi 2>/dev/null || sudo systemctl restart inkypi 2>/dev/null'],
+            ['bash', '-c', 'sleep 2 && sudo systemctl restart minkipi 2>/dev/null'],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
         )
 
@@ -290,14 +290,13 @@ def download_logs():
         if not JOURNAL_AVAILABLE:
             # Return a message when running in development mode without systemd
             buffer.write(f"Log download not available in development mode (cysystemd not installed).\n")
-            buffer.write(f"Logs would normally show DashPi service logs from the last {hours} hours.\n")
+            buffer.write(f"Logs would normally show Minkipi service logs from the last {hours} hours.\n")
             buffer.write(f"\nTo see Flask development logs, check your terminal output.\n")
         else:
             reader = JournalReader()
             reader.open(JournalOpenMode.SYSTEM)
-            # Match either service name (dashpi or inkypi) for backwards compatibility
-            reader.add_filter(Rule("_SYSTEMD_UNIT", "dashpi.service"))
-            reader.add_filter(Rule("_SYSTEMD_UNIT", "inkypi.service"))
+            # Match the Minkipi service logs
+            reader.add_filter(Rule("_SYSTEMD_UNIT", "minkipi.service"))
             reader.seek_realtime_usec(int(since.timestamp() * 1_000_000))
 
             for record in reader:
@@ -319,7 +318,7 @@ def download_logs():
         buffer.seek(0)
         # Add date and time to the filename
         now_str = datetime.now().strftime("%Y%m%d-%H%M%S")
-        filename = f"dashpi_{now_str}.log"
+        filename = f"minkipi_{now_str}.log"
         return Response(
             buffer.read(),
             mimetype="text/plain",
@@ -375,9 +374,9 @@ def export_config():
 
         buffer.seek(0)
         now_str = datetime.now().strftime("%Y-%m-%d")
-        device_name = device_config.get_config().get('device_name') or 'DashPi'
+        device_name = device_config.get_config().get('device_name') or 'Minkipi'
         version = _get_version()
-        filename = f"{device_name}-DashPi V{version}-{now_str}.zip"
+        filename = f"{device_name}-Minkipi V{version}-{now_str}.zip"
         return send_file(
             buffer,
             mimetype='application/zip',
@@ -520,4 +519,3 @@ def import_config():
     except Exception as e:
         logger.error(f"Config import failed: {e}")
         return jsonify({"error": f"Import failed: {e}"}), 500
-

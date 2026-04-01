@@ -3,9 +3,9 @@
 
 Certain plugins, like the AI Image plugin, require API credentials to function. These credentials must be stored in a .env file located at the root of the project. Once you have your API token, follow these steps:
 
-1. SSH into your Raspberry Pi and navigate to the DashPi directory:
+1. SSH into your Raspberry Pi and navigate to the Minkipi directory:
     ```bash
-    cd DashPi
+    cd Minkipi
     ```
 2. Create or edit the .env file using your preferred text editor (e.g., vi, nano):
     ```bash

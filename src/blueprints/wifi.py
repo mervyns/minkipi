@@ -1,6 +1,6 @@
 """WiFi blueprint — captive portal for WiFi provisioning and reconfiguration.
 
-Serves the WiFi setup web UI when DashPi is in AP hotspot mode. Also handles
+Serves the WiFi setup web UI when Minkipi is in AP hotspot mode. Also handles
 captive portal detection (Android/iOS/Windows) to auto-redirect phones to the
 setup page. Provides API endpoints for network scanning and credential submission.
 """
@@ -28,7 +28,7 @@ def wifi_portal():
     if wifi_manager:
         networks = wifi_manager.scan_networks()
 
-    device_name = device_config.get_config("device_name", default="DashPi")
+    device_name = device_config.get_config("device_name", default="Minkipi")
     return render_template('wifi_setup.html', networks=networks, device_name=device_name)
 
 
@@ -93,7 +93,7 @@ def wifi_connect():
     else:
         logger.warning("WiFi connection failed: %s — %s", ssid, result)
         # Restart AP mode so user can try again
-        device_name = device_config.get_config("device_name", default="DashPi")
+        device_name = device_config.get_config("device_name", default="Minkipi")
         wifi_manager.start_ap_mode(device_name)
 
         # Restore the setup image on display
@@ -145,7 +145,7 @@ def wifi_reconfigure():
     if not wifi_manager:
         return jsonify({"success": False, "error": "WiFi manager not available"}), 500
 
-    device_name = device_config.get_config("device_name", default="DashPi")
+    device_name = device_config.get_config("device_name", default="Minkipi")
     ap_ssid = wifi_manager.get_ap_ssid(device_name)
     success = wifi_manager.start_ap_mode(device_name)
 

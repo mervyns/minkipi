@@ -1,4 +1,4 @@
-"""Base plugin module — defines the abstract base class for all DashPi plugins."""
+"""Base plugin module — defines the abstract base class for all Minkipi plugins."""
 
 import logging
 import os

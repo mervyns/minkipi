@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Display DashPi splash with animated progress bar on the framebuffer.
+"""Display Minkipi splash with animated progress bar on the framebuffer.
 
-Renders "dashpi" text with a thin progress bar that fills over BOOT_DURATION
-seconds. Writes directly to /dev/fb0 each frame. Exits when the main DashPi
+Renders "minkipi" text with a thin progress bar that fills over BOOT_DURATION
+seconds. Writes directly to /dev/fb0 each frame. Exits when the main Minkipi
 service takes over the display or after timeout.
 """
 
@@ -134,7 +134,7 @@ def render_frame(width, height, font, title_font_size, progress):
     draw = ImageDraw.Draw(image)
     draw.text(
         (width / 2, height * 0.45),
-        "DashPi",
+        "Minkipi",
         anchor="mm",
         fill=text_color,
         font=font,
@@ -166,7 +166,7 @@ def render_frame(width, height, font, title_font_size, progress):
 
 
 def main():
-    font_dir = sys.argv[1] if len(sys.argv) > 1 else "/usr/local/dashpi/src/static/fonts"
+    font_dir = sys.argv[1] if len(sys.argv) > 1 else "/usr/local/minkipi/src/static/fonts"
 
     width, height, bpp, stride = read_fb_geometry()
     title_font_size = width * 0.25

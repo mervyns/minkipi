@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 
 # AP mode settings
 AP_SSID_SUFFIX = "-Setup"
-AP_PASSWORD = "dashpisetup"
-AP_CONNECTION_NAME = "DashPi-Hotspot"
+AP_PASSWORD = "minkipisetup"
+AP_CONNECTION_NAME = "Minkipi-Hotspot"
 
 # States
 STATE_CONNECTED = "CONNECTED"
@@ -164,7 +164,7 @@ class WifiManager:
         networks.sort(key=lambda n: n["signal"], reverse=True)
         return networks
 
-    def get_ap_ssid(self, device_name="DashPi"):
+    def get_ap_ssid(self, device_name="Minkipi"):
         """Generate the AP hotspot SSID from the device name.
 
         Example: device_name="Lumi" → "Lumi-Setup"
@@ -175,7 +175,7 @@ class WifiManager:
         """Get the hotspot password."""
         return AP_PASSWORD
 
-    def start_ap_mode(self, device_name="DashPi"):
+    def start_ap_mode(self, device_name="Minkipi"):
         """Start a WiFi hotspot for captive portal provisioning.
 
         Creates a WPA-protected hotspot (nmcli requires a password). Users

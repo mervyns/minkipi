@@ -1,23 +1,23 @@
 #!/bin/bash
 
 # =============================================================================
-# DashPi Bootstrap Script
-# One-liner install: curl -sSL https://raw.githubusercontent.com/SHagler2/DashPi/main/install/bootstrap.sh | sudo bash
+# Minkipi Bootstrap Script
+# One-liner install: curl -sSL https://raw.githubusercontent.com/SHagler2/Minkipi/main/install/bootstrap.sh | sudo bash
 #
 # Installs git if needed, clones the repo, and runs the full install script.
 # =============================================================================
 
 set -e
 
-REPO_URL="https://github.com/SHagler2/DashPi.git"
-INSTALL_DIR="$HOME/DashPi"
+REPO_URL="https://github.com/SHagler2/Minkipi.git"
+INSTALL_DIR="$HOME/Minkipi"
 
 # When run via sudo, $HOME is /root — install to the calling user's home instead
 if [ -n "$SUDO_USER" ]; then
-    INSTALL_DIR=$(eval echo "~$SUDO_USER")/DashPi
+    INSTALL_DIR=$(eval echo "~$SUDO_USER")/Minkipi
 fi
 
-echo "=== DashPi Bootstrap ==="
+echo "=== Minkipi Bootstrap ==="
 
 # Install git if not available
 if ! command -v git &> /dev/null; then
@@ -29,10 +29,10 @@ fi
 
 # Clone or update repo
 if [ -d "$INSTALL_DIR/.git" ]; then
-    echo "DashPi repo already exists at $INSTALL_DIR, pulling latest..."
+    echo "Minkipi repo already exists at $INSTALL_DIR, pulling latest..."
     git -C "$INSTALL_DIR" pull
 else
-    echo "Cloning DashPi to $INSTALL_DIR..."
+    echo "Cloning Minkipi to $INSTALL_DIR..."
     git clone "$REPO_URL" "$INSTALL_DIR"
 fi
 

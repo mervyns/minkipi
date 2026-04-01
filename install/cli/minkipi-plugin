@@ -9,9 +9,9 @@ shift || true
 usage() {
     echo ""
     echo "Plugin commands:"
-    echo "  dashpi plugin install <plugin_id> <git_repository_url>"
-    echo "  dashpi plugin remove <plugin_id>"
-    echo "  dashpi plugin list"
+    echo "  minkipi plugin install <plugin_id> <git_repository_url>"
+    echo "  minkipi plugin remove <plugin_id>"
+    echo "  minkipi plugin list"
     echo ""
 }
 
@@ -37,7 +37,7 @@ install_plugin() {
 
     require_plugins_dir
 
-    # Workaround for .pyc files created by dashpi app with sudo
+    # Workaround for .pyc files created by minkipi app with sudo
     if [[ -d "$DEST_DIR" ]]; then
         sudo chown -R "$(whoami)":"$(whoami)" "$DEST_DIR" 2>/dev/null || true
         chmod -R u+rw "$DEST_DIR" 2>/dev/null || true

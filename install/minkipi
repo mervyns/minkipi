@@ -2,9 +2,9 @@
 
 # entry script to launch the service
 
-export APPNAME="dashpi"
-export PROGRAM_PATH=/usr/local/dashpi
-export VENV_PATH="$PROGRAM_PATH/venv_dashpi"
+export APPNAME="minkipi"
+export PROGRAM_PATH=/usr/local/minkipi
+export VENV_PATH="$PROGRAM_PATH/venv_minkipi"
 
 export PROJECT_DIR="$PROGRAM_PATH"
 export SRC_DIR="$PROGRAM_PATH/src"
@@ -15,18 +15,18 @@ shift || true
 usage() {
     echo ""
     echo "Usage:"
-    echo "  dashpi run"
-    echo "  dashpi plugin <subcommand> [args]"
+    echo "  minkipi run"
+    echo "  minkipi plugin <subcommand> [args]"
     echo ""
 }
 
 run_app() {
     source "$VENV_PATH/bin/activate"
-    exec python -u "$(realpath "$PROGRAM_PATH/src/dashpi.py")"
+    exec python -u "$(realpath "$PROGRAM_PATH/src/minkipi.py")"
 }
 
 run_plugin_cli() {
-    exec "$PROGRAM_PATH/cli/dashpi-plugin" "$@"
+    exec "$PROGRAM_PATH/cli/minkipi-plugin" "$@"
 }
 
 case "$command" in

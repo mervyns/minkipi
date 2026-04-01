@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Generate a raw framebuffer splash image for DashPi clean boot.
+"""Generate a raw framebuffer splash image for Minkipi clean boot.
 
 Reads framebuffer geometry from sysfs (falls back to 1024x600x32bpp),
-renders a simple "dashpi" splash, converts to raw BGRA bytes, and writes
+renders a simple "minkipi" splash, converts to raw BGRA bytes, and writes
 to the output path.
 
 Usage:
-    python3 generate_splash.py --output /usr/local/dashpi/splash.fb --font-dir /path/to/fonts
+    python3 generate_splash.py --output /usr/local/minkipi/splash.fb --font-dir /path/to/fonts
 """
 
 import argparse
@@ -81,7 +81,7 @@ def render_splash(width, height, font_dir):
     font = get_font(font_dir, title_font_size)
     draw.text(
         (width / 2, height * 0.45),
-        "DashPi",
+        "Minkipi",
         anchor="mm",
         fill=text_color,
         font=font,
@@ -148,7 +148,7 @@ def convert_rgb565(image, width, height, stride):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate DashPi splash framebuffer image")
+    parser = argparse.ArgumentParser(description="Generate Minkipi splash framebuffer image")
     parser.add_argument("--output", required=True, help="Output path for raw framebuffer file")
     parser.add_argument("--font-dir", required=True, help="Path to fonts directory")
     args = parser.parse_args()

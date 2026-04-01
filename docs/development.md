@@ -1,4 +1,4 @@
-# DashPi Development Quick Start
+# Minkipi Development Quick Start
 
 ## Development Without Hardware
 
@@ -19,8 +19,8 @@ Traditional setup method
 
 ```bash
 # 1. Clone and setup
-git clone https://github.com/SHagler2/DashPi.git
-cd DashPi
+git clone https://github.com/SHagler2/Minkipi.git
+cd Minkipi
 
 # 2. Create virtual environment
 python3 -m venv venv
@@ -29,7 +29,7 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 # 3. Install Python dependencies and run
 pip install -r install/requirements-dev.txt
 bash install/update_vendors.sh
-python src/dashpi.py --dev
+python src/minkipi.py --dev
 ```
 
 </td>
@@ -46,11 +46,11 @@ command -v direnv >/dev/null || nix profile install "nixpkgs#direnv" \
   && source ~/.${SHELL##*/}rc # If not already present: install direnv, add hooks to shell rc and activate
 
 # 2. Clone and setup
-git clone https://github.com/SHagler2/DashPi.git
-cd DashPi # direnv reads .envrc -> runs devbox shell -> installs deps & activates venv
+git clone https://github.com/SHagler2/Minkipi.git
+cd Minkipi # direnv reads .envrc -> runs devbox shell -> installs deps & activates venv
 
-# 3. Run DashPi in developer mode via devbox
-devbox run dev # alternatively run `devbox shell` and then run `python src/dashpi.py --dev`
+# 3. Run Minkipi in developer mode via devbox
+devbox run dev # alternatively run `devbox shell` and then run `python src/minkipi.py --dev`
 ```
 
 </td>
@@ -77,7 +77,7 @@ Traditional activation method
 
 ```bash
 source venv/bin/activate             # Activate virtual environment
-python src/dashpi.py --dev           # Start development server
+python src/minkipi.py --dev           # Start development server
 deactivate                           # Exit virtual environment
 ```
 
@@ -86,13 +86,13 @@ deactivate                           # Exit virtual environment
 devbox / direnv method
 
 ```bash
-devbox run dev # run DashPi in dev mode, terminating deactivates `devbox shell`
+devbox run dev # run Minkipi in dev mode, terminating deactivates `devbox shell`
 
 # direnv will activate / deactivate `devbox shell` automatically when entering
 # and leaving the project directory (provided `direnv allow` has run once)... 
 # Otherwise to manually activate / deactivate:
 devbox shell                         # Installs deps, and activates Python virtual environment
-python src/dashpi.py --dev           # Start development server
+python src/minkipi.py --dev           # Start development server
 exit                                 # Exit devbox shell and deactivates Python virtual environment
 ```
 
@@ -116,20 +116,20 @@ exit                                 # Exit devbox shell and deactivates Python 
 
 ## Other Requirements
 
-DashPi relies on system packages for some features, which are normally installed via the `install.sh` script. **(Skip if using devbox method)**
+Minkipi relies on system packages for some features, which are normally installed via the `install.sh` script. **(Skip if using devbox method)**
 
 ### Linux
 **(Skip this section if using devbox method)**
 
 The required packages can be found in this file: 
 
-https://github.com/SHagler2/DashPi/blob/main/install/debian-requirements.txt
+https://github.com/SHagler2/Minkipi/blob/main/install/debian-requirements.txt
 
 Use your favourite package manager (such as `apt`) to install them.
 
 ### Chromium or Google Chrome browser
 
-DashPi uses `--headless` mode to rendering HTML templates to PNG images using a Chrome-like browser.  
+Minkipi uses `--headless` mode to rendering HTML templates to PNG images using a Chrome-like browser.  
 
 Different platforms have different available browser packages, refer to the recommended packages in the table below: 
 
@@ -140,4 +140,4 @@ Different platforms have different available browser packages, refer to the reco
 | macOS | Google Chrome | chromium on macOS / aarch64 is not considered stable,<br>For devbox method, Google Chrome must be installed at its default location: <br>`/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`|
 | Windows | Chromium or Google Chrome | devbox method installs chromium on WSL2,<br>if using native Windows (not devbox via WSL2), chromium or google-chrome should also work if in PATH | 
 
-DashPi will search for a Chrome-like browser in the project's PATH (if using devbox method) and your system's PATH in that order. 
+Minkipi will search for a Chrome-like browser in the project's PATH (if using devbox method) and your system's PATH in that order. 

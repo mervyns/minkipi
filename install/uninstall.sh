@@ -6,7 +6,7 @@ normal=$(tput sgr0)
 red=$(tput setaf 1)
 green=$(tput setaf 2)
 
-APPNAME="dashpi"
+APPNAME="minkipi"
 INSTALL_PATH="/usr/local/$APPNAME"
 BINPATH="/usr/local/bin"
 VENV_PATH="$INSTALL_PATH/venv_$APPNAME"
@@ -64,25 +64,25 @@ cleanup_clean_boot() {
   echo "Removing clean boot configuration"
 
   # Remove splash service
-  systemctl disable dashpi-splash.service 2>/dev/null
-  rm -f /etc/systemd/system/dashpi-splash.service
-  echo_success "\tRemoved dashpi-splash.service"
+  systemctl disable minkipi-splash.service 2>/dev/null
+  rm -f /etc/systemd/system/minkipi-splash.service
+  echo_success "\tRemoved minkipi-splash.service"
 
   # Unmask getty on tty1
   systemctl unmask getty@tty1.service 2>/dev/null
   echo_success "\tUnmasked getty@tty1.service"
 
   # Remove tmpfiles config
-  rm -f /etc/tmpfiles.d/dashpi-fbcon.conf
+  rm -f /etc/tmpfiles.d/minkipi-fbcon.conf
   echo_success "\tRemoved fbcon cursor config"
 
   # Remove splash image
   rm -f "$INSTALL_PATH/splash.fb"
 
   # Restore cmdline.txt from backup
-  for f in /boot/firmware/cmdline.txt.dashpi.bak /boot/cmdline.txt.dashpi.bak; do
+  for f in /boot/firmware/cmdline.txt.minkipi.bak /boot/cmdline.txt.minkipi.bak; do
     if [ -f "$f" ]; then
-      cp "$f" "${f%.dashpi.bak}"
+      cp "$f" "${f%.minkipi.bak}"
       rm "$f"
       echo_success "\tRestored original cmdline.txt"
       break

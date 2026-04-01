@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>{{ device_name }} — DashPi v{{ version }}</title>
+    <title>{{ device_name }} — Minkipi v{{ version }}</title>
 
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
@@ -135,7 +135,7 @@
     </style>
     <script>
         (function() {
-            const theme = localStorage.getItem('dashpi-v2-theme') || 
+            const theme = localStorage.getItem('minkipi-v2-theme') || 
                          (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             if (theme === 'dark') {
                 document.documentElement.setAttribute('data-theme', 'dark');
@@ -479,7 +479,7 @@
         <header class="header">
             <div>
                 <h1 style="margin: 0 0 4px 0; line-height: 1.1;">{{ device_name }}</h1>
-                <div style="font-size: 12px; color: var(--text-secondary); font-weight: normal;">DashPi v{{ version }}</div>
+                <div style="font-size: 12px; color: var(--text-secondary); font-weight: normal;">Minkipi v{{ version }}</div>
             </div>
 
             <div class="header-actions">
@@ -612,7 +612,7 @@
             // View mode (grid/list)
             const viewToggle = document.getElementById('viewToggle');
             const pluginsContainer = document.getElementById('pluginsContainer');
-            let currentView = localStorage.getItem('dashpi-v2-plugins-view') || 'grid';
+            let currentView = localStorage.getItem('minkipi-v2-plugins-view') || 'grid';
 
             function updateView() {
                 if (currentView === 'list') {
@@ -626,7 +626,7 @@
 
             viewToggle.addEventListener('click', () => {
                 currentView = currentView === 'grid' ? 'list' : 'grid';
-                localStorage.setItem('dashpi-v2-plugins-view', currentView);
+                localStorage.setItem('minkipi-v2-plugins-view', currentView);
                 updateView();
             });
 
@@ -754,7 +754,7 @@
     <!-- Global Refresh Status Polling -->
     <script>
     window.mainStatus = (function() {
-        const STORAGE_KEY = 'dashpi-v2-show-main-status';
+        const STORAGE_KEY = 'minkipi-v2-show-main-status';
         const toggle = document.getElementById('showMainStatus');
         const bar = document.getElementById('mainStatus');
         const icon = document.getElementById('mainStatusIcon');

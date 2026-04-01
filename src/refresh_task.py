@@ -287,7 +287,7 @@ class RefreshTask:
         if not wifi_ok:
             if self.wifi_manager.state != STATE_AP_MODE:
                 logger.warning("WiFi lost after 3 checks, entering AP mode")
-                device_name = self.device_config.get_config("device_name", default="DashPi")
+                device_name = self.device_config.get_config("device_name", default="Minkipi")
                 self.wifi_manager.start_ap_mode(device_name)
                 try:
                     from utils.wifi_display import generate_wifi_setup_image

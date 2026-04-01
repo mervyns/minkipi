@@ -1,6 +1,6 @@
-# Building DashPi Plugins
+# Building Minkipi Plugins
 
-This guide walks you through the process of creating a new plugin for DashPi.
+This guide walks you through the process of creating a new plugin for Minkipi.
 
 ### 1. Create a Directory for Your Plugin
 
@@ -80,7 +80,7 @@ If your plugin requires user configuration through the web UI, you'll need to de
 
 ## Display Compatibility
 
-DashPi supports multiple display types. Plugins should be display-agnostic:
+Minkipi supports multiple display types. Plugins should be display-agnostic:
 
 - **Do not hardcode pixel dimensions.** Use `device_config.get_config("resolution")` to get the display size and scale your layout proportionally.
 - **All 24 built-in plugins** work across LCD, Inky e-paper, and Waveshare e-paper displays without modification.
@@ -88,9 +88,9 @@ DashPi supports multiple display types. Plugins should be display-agnostic:
 
 ## Test Your Plugin
 
-- Restart the DashPi service by running
+- Restart the Minkipi service by running
     ```bash
-    sudo systemctl restart dashpi.service
+    sudo systemctl restart minkipi.service
     ```
 - Test and ensure that your plugin:
     - Loads correctly on service start.
@@ -142,7 +142,7 @@ When a plugin is added to a loop, a "Plugin Instance" is created, and its settin
 
 To publish your plugin as a third party plugin for others to install, you'll need to create a new repository. See [Creating a new repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository) in the GitHub documentation.
 
-Note: It's recommended to name your repository `DashPi-{plugin_name}` so it's easy to discover via GitHub search.
+Note: It's recommended to name your repository `Minkipi-{plugin_name}` so it's easy to discover via GitHub search.
 
 ### Repository Structure
 
@@ -163,6 +163,6 @@ Your repository must include:
 
 ---
 
-See [DashPi-Plugin-Template](https://github.com/SHagler2/DashPi-Plugin-Template) for a sample template of a third party plugin.
+See [Minkipi-Plugin-Template](https://github.com/SHagler2/Minkipi-Plugin-Template) for a sample template of a third party plugin.
 
-Once you're done, feel free to add your plugin to the [3rd Party Plugin List](https://github.com/SHagler2/DashPi/wiki/3rd-Party-Plugins) and share it in the [🙌 Show and Tell Discussion Board](https://github.com/SHagler2/DashPi/discussions/categories/show-and-tell).
+Once you're done, feel free to add your plugin to the [3rd Party Plugin List](https://github.com/SHagler2/Minkipi/wiki/3rd-Party-Plugins) and share it in the [🙌 Show and Tell Discussion Board](https://github.com/SHagler2/Minkipi/discussions/categories/show-and-tell).

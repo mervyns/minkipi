@@ -1,4 +1,4 @@
-"""Shared fixtures for DashPi test suite."""
+"""Shared fixtures for Minkipi test suite."""
 
 import os
 import json
@@ -33,8 +33,8 @@ def mock_device_config():
     cfg.load_env_key.return_value = None
     cfg.get_plugins.return_value = []
     cfg.get_plugin.return_value = None
-    cfg.current_image_file = "/tmp/dashpi_test_current_image.png"
-    cfg.plugin_image_dir = "/tmp/dashpi_test_plugin_images"
+    cfg.current_image_file = "/tmp/minkipi_test_current_image.png"
+    cfg.plugin_image_dir = "/tmp/minkipi_test_plugin_images"
 
     # Loop manager mock
     loop_mgr = MagicMock()

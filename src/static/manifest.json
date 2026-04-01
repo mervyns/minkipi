@@ -1,7 +1,7 @@
 {
-  "name": "DashPi",
-  "short_name": "DashPi",
-  "description": "Control your DashPi LCD display",
+  "name": "Minkipi",
+  "short_name": "Minkipi",
+  "description": "Control your Minkipi LCD display",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1a1a2e",

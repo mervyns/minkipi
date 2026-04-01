@@ -167,14 +167,14 @@ class TestConfigRefreshInfo:
 class TestConfigEnv:
     def test_load_env_key_returns_none(self, cfg):
         # Env var shouldn't exist in test context
-        assert cfg.load_env_key("DASHPI_TEST_NONEXISTENT_KEY") is None
+        assert cfg.load_env_key("MINKIPI_TEST_NONEXISTENT_KEY") is None
 
     def test_load_env_key_returns_value(self, cfg):
-        os.environ["DASHPI_TEST_KEY_XYZ"] = "test_value"
+        os.environ["MINKIPI_TEST_KEY_XYZ"] = "test_value"
         try:
-            assert cfg.load_env_key("DASHPI_TEST_KEY_XYZ") == "test_value"
+            assert cfg.load_env_key("MINKIPI_TEST_KEY_XYZ") == "test_value"
         finally:
-            del os.environ["DASHPI_TEST_KEY_XYZ"]
+            del os.environ["MINKIPI_TEST_KEY_XYZ"]
 
 
 class TestUpdateValue:

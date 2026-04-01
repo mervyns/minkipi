@@ -1,51 +1,51 @@
 # Troubleshooting
 
-## DashPi Service not running
+## Minkipi Service not running
 
 Check the status of the service:
 ```bash
-sudo systemctl status dashpi.service
+sudo systemctl status minkipi.service
 ```
 
 If the service is running, this should output `Active: active (running)`:
 ```bash
-● dashpi.service - dashpi App
-     Loaded: loaded (/etc/systemd/system/dashpi.service; enabled; preset: enabled)
+● minkipi.service - minkipi App
+     Loaded: loaded (/etc/systemd/system/minkipi.service; enabled; preset: enabled)
      Active: active (running) since ...
    Main PID: 48333 (bash)
       Tasks: 6
-     CGroup: /system.slice/dashpi.service
-             ├─48333 bash /usr/local/bin/dashpi
-             └─48336 python -u /usr/local/dashpi/src/dashpi.py
+     CGroup: /system.slice/minkipi.service
+             ├─48333 bash /usr/local/bin/minkipi
+             └─48336 python -u /usr/local/minkipi/src/minkipi.py
 ```
 
 If the service is not running, check the logs for any errors or issues.
 
 ## Debugging
 
-View the latest logs for the DashPi service:
+View the latest logs for the Minkipi service:
 ```bash
-journalctl -u dashpi -n 100
+journalctl -u minkipi -n 100
 ```
 
 Tail the logs:
 ```bash
-journalctl -u dashpi -f
+journalctl -u minkipi -f
 ```
 
-## Restart the DashPi Service
+## Restart the Minkipi Service
 
 ```bash
-sudo systemctl restart dashpi.service
+sudo systemctl restart minkipi.service
 ```
 
 
-## Run DashPi Manually
+## Run Minkipi Manually
 
-If the DashPi service is not running, try manually running the startup script to diagnose. This should output the logs to the terminal and make it easier to troubleshoot any errors:
+If the Minkipi service is not running, try manually running the startup script to diagnose. This should output the logs to the terminal and make it easier to troubleshoot any errors:
 
 ```bash
-sudo /usr/local/bin/dashpi -d
+sudo /usr/local/bin/minkipi -d
 ```
 
 ## API Key not configured
@@ -63,7 +63,7 @@ Failed to retrieve weather data
 ERROR - root - Failed to retrieve weather data: b'{"cod":401, "message": "Please note that using One Call 3.0 requires a separate subscription to the One Call by Call plan. Learn more here https://openweathermap.org/price. If you have a valid subscription to the One Call by Call plan, but still receive this error, then please see https://openweathermap.org/faq#error401 for more info."}'
 ```
 
-DashPi uses the One Call API 3.0 API which requires a subscription but is free for up to 1,000 requests a day. See [API Keys](api_keys.md) for instructions.
+Minkipi uses the One Call API 3.0 API which requires a subscription but is free for up to 1,000 requests a day. See [API Keys](api_keys.md) for instructions.
 
 ## No EEPROM detected
 
@@ -71,7 +71,7 @@ DashPi uses the One Call API 3.0 API which requires a subscription but is free f
 RuntimeError: No EEPROM detected! You must manually initialise your Inky board.
 ```
 
-DashPi uses the [inky python library](https://github.com/pimoroni/inky) from Pimoroni to detect and interface with Inky displays. However, the auto-detect functionality does not work on some boards, which requires manual setup (see [Manual Setup](https://github.com/pimoroni/inky?tab=readme-ov-file#manual-setup)).
+Minkipi uses the [inky python library](https://github.com/pimoroni/inky) from Pimoroni to detect and interface with Inky displays. However, the auto-detect functionality does not work on some boards, which requires manual setup (see [Manual Setup](https://github.com/pimoroni/inky?tab=readme-ov-file#manual-setup)).
 
 Manually import and instantiate the correct Inky module in `src/display/inky_display.py`. For the 7.3 Inky Impression, modify the file as follows:
 ```
@@ -88,9 +88,9 @@ Manually import and instantiate the correct Inky module in `src/display/inky_dis
          self.inky_display.set_border(self.inky_display.BLACK)
 ```
 
-Then restart the dashpi service:
+Then restart the minkipi service:
 ```
-sudo systemctl restart dashpi.service
+sudo systemctl restart minkipi.service
 ```
 
 ## Waveshare e-Paper EPD Devices
@@ -109,7 +109,7 @@ in addition to the libraries that are normally installed for Inky screens.
 
 Verify SPI configuration using `ls /dev/sp*`.  There should be two entries for _spidev0.0_ and _spidev0.1_.  
 
-If only the first is visible, check _/boot/firmware/config.txt_. The regular install of DashPi adds `dtoverlay=spi0-0cs` to the this file.  If it is there, either delete it (for default behaviour) or specifically add `dtoverlay=spi0-2cs`.
+If only the first is visible, check _/boot/firmware/config.txt_. The regular install of Minkipi adds `dtoverlay=spi0-0cs` to the this file.  If it is there, either delete it (for default behaviour) or specifically add `dtoverlay=spi0-2cs`.
 
 ### ERROR: Failed to download Waveshare driver
 
@@ -124,12 +124,12 @@ Note: Some displays, such as the epd4in0e, are not included in the main library 
 
 In this case, you’ll need to manually copy both the epdXinX.py and epdconfig.py files into:
 ```bash
-DashPi/src/display/waveshare_epd/
+Minkipi/src/display/waveshare_epd/
 ```
 
 For example, to copy the driver and epdconfig files for epd13in3E (Waveshare Spectra 6 (E6) Full Color 13.3 inch display):
 ```bash
-cd DashPi/src/display/waveshare_epd/
+cd Minkipi/src/display/waveshare_epd/
 curl -L -O https://raw.githubusercontent.com/waveshareteam/e-Paper/refs/heads/master/E-paper_Separate_Program/13.3inch_e-Paper_E/RaspberryPi/python/lib/epd13in3E.py
 curl -L -O https://raw.githubusercontent.com/waveshareteam/e-Paper/refs/heads/master/E-paper_Separate_Program/13.3inch_e-Paper_E/RaspberryPi/python/lib/epdconfig.py
 ```
@@ -144,7 +144,7 @@ Once the files are in place, rerun the installation script. The script will dete
 
 ## Today's Newspaper not found
 
-Daily newspaper front pages are sourced from [Freedom Forum](https://frontpages.freedomforum.org/gallery). The list of available newspapers may change periodically. DashPi maintains an up-to-date list of newspapers provided by Freedom Forum, but there may be times when the list becomes outdated.
+Daily newspaper front pages are sourced from [Freedom Forum](https://frontpages.freedomforum.org/gallery). The list of available newspapers may change periodically. Minkipi maintains an up-to-date list of newspapers provided by Freedom Forum, but there may be times when the list becomes outdated.
 
 If you encounter this error, please feel free to open an Issue, including the name of the newspaper you were trying to access, and we'll work to update the list.
 
@@ -154,7 +154,7 @@ Also consider supporting the important work of Freedom Forum, an organization de
 
 The Pi Zero 2W has only 512 MB of RAM, which can cause out-of-memory issues during installation. As of v2.0, the install script handles this automatically by expanding swap to 2 GB and installing pip packages in small batches. If you still encounter issues, the manual fixes below may help.
 
-For more details and community discussion, refer to this [GitHub Issue](https://github.com/SHagler2/DashPi/issues/5).
+For more details and community discussion, refer to this [GitHub Issue](https://github.com/SHagler2/Minkipi/issues/5).
 
 ### Pip Installation Error
 
@@ -166,13 +166,13 @@ WARNING: Retrying (Retry(total=4, connect=None, read=None, redirect=None, status
 #### Recommended solution
 Re-run the install script — v2.0 automatically detects low-memory devices and installs packages in batches. If the issue persists, manually install the required pip packages:
 ```bash
-source "/usr/local/dashpi/venv_dashpi/bin/activate"
+source "/usr/local/minkipi/venv_minkipi/bin/activate"
 pip install --no-cache-dir -r install/requirements.txt
 deactivate
 ```
-Restart the dashpi service to apply the changes:
+Restart the minkipi service to apply the changes:
 ```bash
-sudo systemctl restart dashpi.service
+sudo systemctl restart minkipi.service
 ```
 
 ### Numpy ImportError
@@ -185,25 +185,25 @@ your python interpreter from there.
 ```
 
 #### Recommended solution
-To resolve this issue, manually reinstall the Pillow library in the dashpi virtual environment:
+To resolve this issue, manually reinstall the Pillow library in the minkipi virtual environment:
 ```bash
 sudo su
-source "/usr/local/dashpi/venv_dashpi/bin/activate"
+source "/usr/local/minkipi/venv_minkipi/bin/activate"
 pip uninstall Pillow
 pip install --no-cache-dir Pillow
 deactivate
 ```
 
-Restart the dashpi service to apply the changes:
+Restart the minkipi service to apply the changes:
 ```bash
-sudo systemctl restart dashpi.service
+sudo systemctl restart minkipi.service
 ```
 
 ## Colors look washed out or incorrect
 
 Some color inaccuracies are expected due to the physical limitations of e-ink displays, especially on multi-color panels with a limited color palette and dithering.
 
-DashPi provides several image enhancement controls in the Settings page that can help improve how images appear on your display: Saturation, Contrast, Sharpness, Brightness. These adjustments are applied to images using the Pillow ImageEnhance module before they are displayed. You can experiment with these values to find what looks best for your specific panel and content.
+Minkipi provides several image enhancement controls in the Settings page that can help improve how images appear on your display: Saturation, Contrast, Sharpness, Brightness. These adjustments are applied to images using the Pillow ImageEnhance module before they are displayed. You can experiment with these values to find what looks best for your specific panel and content.
 
 For more details on how each setting behaves, see the [Pillow documentation](https://pillow.readthedocs.io/en/stable/reference/ImageEnhance.html).
 

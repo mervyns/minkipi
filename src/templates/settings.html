@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ device_name }} - DashPi v{{ version }} - Settings</title>
+    <title>{{ device_name }} - Minkipi v{{ version }} - Settings</title>
     <script>
         (function() {
-            const theme = localStorage.getItem('dashpi-v2-theme') ||
+            const theme = localStorage.getItem('minkipi-v2-theme') ||
                          (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             if (theme === 'dark') {
                 document.documentElement.setAttribute('data-theme', 'dark');
@@ -219,7 +219,7 @@
                 const data = await resp.json();
                 if (data.success) {
                     showResponseModal('success',
-                        `WiFi hotspot started!\n\nConnect to "${data.ap_ssid}" on your phone to configure WiFi.\nPassword: dashpisetup`);
+                        `WiFi hotspot started!\n\nConnect to "${data.ap_ssid}" on your phone to configure WiFi.\nPassword: minkipisetup`);
                 } else {
                     showResponseModal('failure', data.error || 'Failed to start WiFi hotspot.');
                 }
@@ -281,7 +281,7 @@
             <div style="display: flex; align-items: center; gap: 12px;">
                 <button onclick="window.location.href='{{ url_for('main.main_page') }}'" class="back-button">← Back to Main</button>
                 <div class="title-block">
-                    <span class="project-label">{{ device_name }} - DashPi v{{ version }}</span>
+                    <span class="project-label">{{ device_name }} - Minkipi v{{ version }}</span>
                     <h1>Settings</h1>
                 </div>
             </div>
@@ -300,7 +300,7 @@
                     <label for="deviceName" class="form-label">Device Name:</label>
                     <input type="text" id="deviceName" name="deviceName"
                         value="{{ device_settings.device_name or '' }}"
-                        placeholder="{{ device_settings.device_name or 'DashPi' }}"
+                        placeholder="{{ device_settings.device_name or 'Minkipi' }}"
                         class="form-input" style="max-width: 250px;">
                     <span class="form-hint" style="font-size: 0.8em; opacity: 0.7;">
                         Access this device at <strong>http://{{ device_settings.device_name or 'hostname' }}.local</strong>

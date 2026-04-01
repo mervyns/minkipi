@@ -14,7 +14,7 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 SCRIPT_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
 
-APPNAME="dashpi"
+APPNAME="minkipi"
 INSTALL_PATH="/usr/local/$APPNAME"
 BINPATH="/usr/local/bin"
 VENV_PATH="$INSTALL_PATH/venv_$APPNAME"
@@ -118,7 +118,7 @@ else
 fi
 
 echo "Updating executable in ${BINPATH}/$APPNAME"
-cp $SCRIPT_DIR/dashpi $BINPATH/
+cp $SCRIPT_DIR/minkipi $BINPATH/
 sudo chmod +x $BINPATH/$APPNAME
 
 echo "Update JS and CSS files"

@@ -11,9 +11,9 @@ assignees: ''
 
 Please confirm the following:
 
-- [ ] I have searched [open](https://github.com/SHagler2/DashPi/issues) and [closed](https://github.com/SHagler2/DashPi/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aclosed) issues to make sure it isn't already reported
-- [ ] I reviewed the [troubleshooting guide](https://github.com/SHagler2/DashPi/blob/main/docs/troubleshooting.md)
-- [ ] I reviewed DashPi service logs and will paste any relevant logs below
+- [ ] I have searched [open](https://github.com/SHagler2/Minkipi/issues) and [closed](https://github.com/SHagler2/Minkipi/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aclosed) issues to make sure it isn't already reported
+- [ ] I reviewed the [troubleshooting guide](https://github.com/SHagler2/Minkipi/blob/main/docs/troubleshooting.md)
+- [ ] I reviewed Minkipi service logs and will paste any relevant logs below
 
 **Describe the bug**
 A clear and concise description of what the bug is.
@@ -29,7 +29,7 @@ Steps to reproduce the behavior:
 4. See error
 
 **Logs**
-Provide the DashPi service logs, see [troubleshooting.md](./docs/troubleshooting.md) for instructions on how to view logs.
+Provide the Minkipi service logs, see [troubleshooting.md](./docs/troubleshooting.md) for instructions on how to view logs.
 
 **Screenshots**
 If applicable, add screenshots to help explain your problem.

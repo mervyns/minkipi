@@ -1,4 +1,4 @@
-# DashPi Detailed Installation
+# Minkipi Detailed Installation
 
 ## Flashing Raspberry Pi OS 
 
@@ -14,11 +14,11 @@
 3. Click Next and choose Edit Settings on the Use OS customization? screen
     - General:
         - Set hostname: enter your desired hostname
-            -  This will be used to ssh into the device & access the DashPi UI on your network.
+            -  This will be used to ssh into the device & access the Minkipi UI on your network.
         - Set username & password
             - Do not use the default username and password on a Raspberry PI as this poses a security risk
         - Configure wireless LAN to your network
-            - The DashPi web server will only be accessible to devices on this network
+            - The Minkipi web server will only be accessible to devices on this network
         - Set local settings to your Time zone
     - Service:
         - Enable SSH:

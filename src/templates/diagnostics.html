@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>{{ device_name }} - DashPi v{{ version }} - Diagnostics</title>
+    <title>{{ device_name }} - Minkipi v{{ version }} - Diagnostics</title>
     <script>
         (function() {
-            const theme = localStorage.getItem('dashpi-v2-theme') ||
+            const theme = localStorage.getItem('minkipi-v2-theme') ||
                          (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             if (theme === 'dark') {
                 document.documentElement.setAttribute('data-theme', 'dark');
@@ -131,7 +131,7 @@
             <div style="display: flex; align-items: center; gap: 12px;">
                 <button onclick="window.location.href='{{ url_for('main.main_page') }}'" class="back-button">← Back to Main</button>
                 <div class="title-block">
-                    <span class="project-label">{{ device_name }} - DashPi v{{ version }}</span>
+                    <span class="project-label">{{ device_name }} - Minkipi v{{ version }}</span>
                     <h1>Diagnostics</h1>
                 </div>
             </div>
@@ -252,15 +252,15 @@
             </div>
         </div>
 
-        <!-- DashPi Process -->
+        <!-- Minkipi Process -->
         <div class="diag-card">
-            <h3>DashPi Process</h3>
+            <h3>Minkipi Process</h3>
             <div class="diag-detail" style="margin-top: 0">
-                <span style="font-size: 18px; font-weight: 600; color: var(--text-primary);" id="dashpiMem">--</span>
+                <span style="font-size: 18px; font-weight: 600; color: var(--text-primary);" id="minkipiMem">--</span>
                 <span class="diag-unit">MB memory</span>
             </div>
             <div class="diag-detail" style="margin-top: 8px">
-                <span style="font-size: 18px; font-weight: 600; color: var(--text-primary);" id="dashpiCpu">--</span>
+                <span style="font-size: 18px; font-weight: 600; color: var(--text-primary);" id="minkipiCpu">--</span>
                 <span class="diag-unit">% CPU</span>
             </div>
         </div>
@@ -506,10 +506,10 @@
                     lastNetTime = now;
                 }
 
-                // DashPi process
-                if (d.dashpi_mem_mb !== undefined) {
-                    document.getElementById('dashpiMem').textContent = d.dashpi_mem_mb;
-                    document.getElementById('dashpiCpu').textContent = d.dashpi_cpu.toFixed(1);
+                // Minkipi process
+                if (d.minkipi_mem_mb !== undefined) {
+                    document.getElementById('minkipiMem').textContent = d.minkipi_mem_mb;
+                    document.getElementById('minkipiCpu').textContent = d.minkipi_cpu.toFixed(1);
                 }
 
             } catch (e) {

@@ -1,5 +1,5 @@
 """
-ShazamPi Music Plugin for DashPi
+ShazamPi Music Plugin for Minkipi
 Records audio from a USB microphone, detects music using YAMNet (TFLite),
 identifies songs via Shazam, and displays album art with a title overlay.
 Falls back to an idle display with weather info when no music is detected.

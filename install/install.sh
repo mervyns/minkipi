@@ -2,8 +2,8 @@
 
 # =============================================================================
 # Script Name: install.sh
-# Description: This script automates the installation of DashPi and creation of
-#              the DashPi service.
+# Description: This script automates the installation of Minkipi and creation of
+#              the Minkipi service.
 #
 # Usage: ./install.sh
 # =============================================================================
@@ -22,13 +22,8 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 SCRIPT_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
 
-# Use hostname as app/service name if it's 'inkypi', otherwise default to 'dashpi'
-HOSTNAME_LOWER=$(hostname | tr '[:upper:]' '[:lower:]')
-if [ "$HOSTNAME_LOWER" = "inkypi" ]; then
-  APPNAME="inkypi"
-else
-  APPNAME="dashpi"
-fi
+# App/service name
+APPNAME="minkipi"
 INSTALL_PATH="/usr/local/$APPNAME"
 SRC_PATH="$SCRIPT_DIR/../src"
 BINPATH="/usr/local/bin"
@@ -271,7 +266,7 @@ setup_clean_boot() {
       fi
     done
     if [ "$MODIFIED" = true ]; then
-      cp "$CMDLINE_FILE" "${CMDLINE_FILE}.dashpi.bak"
+      cp "$CMDLINE_FILE" "${CMDLINE_FILE}.minkipi.bak"
       echo "$CMDLINE" > "$CMDLINE_FILE"
       echo_success "\tUpdated $CMDLINE_FILE with quiet boot parameters"
     else
@@ -296,8 +291,8 @@ setup_clean_boot() {
   echo_success "\tMasked getty@tty1.service"
 
   # 4. Install tmpfiles config for fbcon cursor
-  if [ -f "$SCRIPT_DIR/dashpi-fbcon.conf" ]; then
-    cp "$SCRIPT_DIR/dashpi-fbcon.conf" /etc/tmpfiles.d/
+  if [ -f "$SCRIPT_DIR/minkipi-fbcon.conf" ]; then
+    cp "$SCRIPT_DIR/minkipi-fbcon.conf" /etc/tmpfiles.d/
     echo_success "\tInstalled fbcon cursor config"
   fi
 
@@ -308,8 +303,8 @@ setup_clean_boot() {
   fi
 
   # 6. Install and enable splash service
-  if [ -f "$SCRIPT_DIR/dashpi-splash.service" ]; then
-    sed "s/dashpi/${APPNAME}/g" "$SCRIPT_DIR/dashpi-splash.service" > "/etc/systemd/system/${APPNAME}-splash.service"
+  if [ -f "$SCRIPT_DIR/minkipi-splash.service" ]; then
+    sed "s/minkipi/${APPNAME}/g" "$SCRIPT_DIR/minkipi-splash.service" > "/etc/systemd/system/${APPNAME}-splash.service"
     systemctl daemon-reload
     systemctl enable "${APPNAME}-splash.service" > /dev/null 2>&1
     echo_success "\tInstalled and enabled ${APPNAME}-splash.service"
@@ -318,7 +313,7 @@ setup_clean_boot() {
 
 install_executable() {
   echo "Adding executable to ${BINPATH}/$APPNAME"
-  cp $SCRIPT_DIR/dashpi $BINPATH/
+  cp $SCRIPT_DIR/minkipi $BINPATH/
   sudo chmod +x $BINPATH/$APPNAME
 }
 
