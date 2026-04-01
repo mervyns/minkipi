@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ device_name }} - DashPi v{{ version }} - Settings</title>
+    <script>
+        (function() {
+            const theme = localStorage.getItem('dashpi-v2-theme') ||
+                         (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            if (theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/main.css') }}">
+    <script src="{{ url_for('static', filename='scripts/dark_mode.js') }}"></script>
+    <script src="{{ url_for('static', filename='scripts/response_modal.js') }}"></script>
+    <script>
+        async function checkForUpdates() {
+            const btn = document.getElementById('updateBtn');
+            btn.disabled = true;
+            btn.textContent = 'Checking...';
+
+            try {
+                const resp = await fetch("{{ url_for('settings.check_for_updates') }}");
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    showResponseModal('failure', `Update check failed: ${data.error || 'Unknown error'}`);
+                    btn.disabled = false;
+                    btn.textContent = 'Update';
+                    return;
+                }
+
+                if (data.update_available) {
+                    let msg = `Update available: v${data.local_version} → v${data.remote_version} (${data.commits_behind} commit${data.commits_behind !== 1 ? 's' : ''})`;
+                    if (data.changelog && data.changelog.length > 0) {
+                        msg += '\n\n' + data.changelog.join('\n');
+                    }
+                    if (confirm(msg + '\n\nApply update and restart?')) {
+                        applyUpdate(btn);
+                    } else {
+                        btn.disabled = false;
+                        btn.textContent = 'Update';
+                    }
+                } else {
+                    showResponseModal('success', `Up to date (v${data.local_version})`);
+                    btn.disabled = false;
+                    btn.textContent = 'Update';
+                }
+            } catch (err) {
+                showResponseModal('failure', 'Update check failed: ' + err.message);
+                btn.disabled = false;
+                btn.textContent = 'Update';
+            }
+        }
+
+        async function applyUpdate(btn) {
+            btn.textContent = 'Updating...';
+
+            try {
+                const resp = await fetch("{{ url_for('settings.apply_update') }}", { method: 'POST' });
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    showResponseModal('failure', `Update failed: ${data.error || 'Unknown error'}`);
+                    btn.disabled = false;
+                    btn.textContent = 'Update';
+                    return;
+                }
+
+                showResponseModal('success', `Updated to v${data.new_version}. Restarting service...`);
+                btn.textContent = 'Restarting...';
+
+                // Poll until the service comes back up
+                setTimeout(() => {
+                    let attempts = 0;
+                    const poll = setInterval(async () => {
+                        attempts++;
+                        try {
+                            const r = await fetch('/settings', { method: 'HEAD' });
+                            if (r.ok) {
+                                clearInterval(poll);
+                                window.location.reload();
+                            }
+                        } catch (e) {
+                            // Service still restarting
+                        }
+                        if (attempts > 30) {
+                            clearInterval(poll);
+                            btn.textContent = 'Reload';
+                            btn.disabled = false;
+                            btn.onclick = () => window.location.reload();
+                        }
+                    }, 2000);
+                }, 5000);
+
+            } catch (err) {
+                showResponseModal('failure', 'Update failed: ' + err.message);
+                btn.disabled = false;
+                btn.textContent = 'Update';
+            }
+        }
+
+        async function handleAction() {
+            const form = document.querySelector('.settings-form');
+            // Sync scheduled day brightness to the dayBrightness field before submit
+            if (document.getElementById('brightnessScheduleEnabled').checked) {
+                document.getElementById('dayBrightness').value = document.getElementById('dayBrightnessScheduled').value;
+            }
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch("{{ url_for('settings.save_settings') }}", {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                const result = await response.json();
+                if (!response.ok) {
+                    showResponseModal('failure', `Error!  ${result.error}`);
+                    form.reset();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showResponseModal('failure', 'An error occurred while processing your request.');
+            }
+        }
+
+        async function toggleWifiForm() {
+            const form = document.getElementById('wifiChangeForm');
+            if (form.style.display === 'none') {
+                form.style.display = 'block';
+                await scanWifiNetworks();
+            } else {
+                form.style.display = 'none';
+            }
+        }
+
+        async function scanWifiNetworks() {
+            const list = document.getElementById('wifiNetworkList');
+            list.innerHTML = '<option value="">Scanning...</option>';
+            document.getElementById('newWifiPassword').value = '';
+            document.getElementById('wifiPasswordRow').style.display = 'none';
+            try {
+                const resp = await fetch('/wifi/scan');
+                const data = await resp.json();
+                let html = '<option value="">Select a network...</option>';
+                if (data.networks && data.networks.length > 0) {
+                    data.networks.forEach(net => {
+                        const signal = net.signal > 66 ? '▰▰▰' : (net.signal > 33 ? '▰▰▱' : '▰▱▱');
+                        const lock = net.security ? ' 🔒' : '';
+                        html += `<option value="${net.ssid}" data-security="${net.security}">${net.ssid} ${signal}${lock}</option>`;
+                    });
+                }
+                html += '<option value="__other__">Other network...</option>';
+                list.innerHTML = html;
+            } catch (e) {
+                list.innerHTML = '<option value="">Scan failed</option>';
+            }
+        }
+
+        function onWifiNetworkSelect() {
+            const select = document.getElementById('wifiNetworkList');
+            const val = select.value;
+            const otherRow = document.getElementById('wifiOtherRow');
+            const pwRow = document.getElementById('wifiPasswordRow');
+
+            if (val === '__other__') {
+                otherRow.style.display = 'block';
+                pwRow.style.display = 'block';
+            } else if (val) {
+                otherRow.style.display = 'none';
+                const opt = select.options[select.selectedIndex];
+                pwRow.style.display = opt.dataset.security ? 'block' : 'none';
+            } else {
+                otherRow.style.display = 'none';
+                pwRow.style.display = 'none';
+            }
+        }
+
+        async function switchWifi() {
+            const select = document.getElementById('wifiNetworkList');
+            let ssid = select.value;
+            if (ssid === '__other__') {
+                ssid = document.getElementById('newWifiSsid').value.trim();
+            }
+            const password = document.getElementById('newWifiPassword').value;
+            if (!ssid) {
+                showResponseModal('failure', 'Please select or enter a network name.');
+                return;
+            }
+            try {
+                const resp = await fetch('/wifi/switch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ssid, password })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    showResponseModal('success',
+                        `Connected to ${data.ssid}! New IP: ${data.ip}\n\nThis page will reload shortly.`);
+                    setTimeout(() => location.reload(), 5000);
+                } else {
+                    showResponseModal('failure', data.error || 'Connection failed.');
+                }
+            } catch (e) {
+                showResponseModal('failure', 'Connection failed — the device may be reconnecting.');
+            }
+        }
+
+        async function reconfigureWifi() {
+            if (!confirm('This will disconnect from WiFi and start a setup hotspot.\nUse your phone to connect to the hotspot and configure a new network.\n\nProceed?')) {
+                return;
+            }
+            try {
+                const resp = await fetch('/wifi/reconfigure', { method: 'POST' });
+                const data = await resp.json();
+                if (data.success) {
+                    showResponseModal('success',
+                        `WiFi hotspot started!\n\nConnect to "${data.ap_ssid}" on your phone to configure WiFi.\nPassword: dashpisetup`);
+                } else {
+                    showResponseModal('failure', data.error || 'Failed to start WiFi hotspot.');
+                }
+            } catch (e) {
+                showResponseModal('failure', 'Failed to start WiFi hotspot.');
+            }
+        }
+
+        async function handleShutdown(reboot) {
+            if (reboot) {
+                showResponseModal('success', 'The system is rebooting. The UI will be unavailable until the reboot is complete.');
+            } else {
+                showResponseModal('success', 'The system is shutting down. The UI will remain unavailable until it is manually restarted.');
+            }
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            // we cannot await a response here
+            await fetch("{{ url_for('settings.shutdown') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({reboot: reboot})
+            });
+        }
+
+
+        function updateSliderValue(slider) {
+            const valueDisplay = document.getElementById(`${slider.id}-value`);
+            const val = parseFloat(slider.value);
+            valueDisplay.textContent = val === 0 ? 'Off' : val.toFixed(1);
+        }
+
+        function toggleBrightnessSchedule() {
+            const enabled = document.getElementById('brightnessScheduleEnabled').checked;
+            document.getElementById('brightnessSingle').style.display = enabled ? 'none' : '';
+            document.getElementById('brightnessScheduleRows').style.display = enabled ? '' : 'none';
+            // Sync values when toggling
+            if (enabled) {
+                document.getElementById('dayBrightnessScheduled').value = document.getElementById('dayBrightness').value;
+                document.getElementById('dayBrightnessScheduled-value').textContent = document.getElementById('dayBrightness').value;
+            } else {
+                document.getElementById('dayBrightness').value = document.getElementById('dayBrightnessScheduled').value;
+                document.getElementById('dayBrightness-value').textContent = document.getElementById('dayBrightnessScheduled').value;
+            }
+        }
+
+        function syncBrightness(source) {
+            // Keep the single slider and scheduled day slider in sync
+            if (source === 'day') {
+                document.getElementById('dayBrightness').value = document.getElementById('dayBrightnessScheduled').value;
+                document.getElementById('dayBrightness-value').textContent = document.getElementById('dayBrightnessScheduled').value;
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="frame">
+        <header class="header">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <button onclick="window.location.href='{{ url_for('main.main_page') }}'" class="back-button">← Back to Main</button>
+                <div class="title-block">
+                    <span class="project-label">{{ device_name }} - DashPi v{{ version }}</span>
+                    <h1>Settings</h1>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="header-button" id="updateBtn" style="background-color: #28a745; color: #fff;" onclick="checkForUpdates()">Update</button>
+                <a class="header-button" style="text-decoration: none; background-color: #2c66b1; color: #fff;" href="{{ url_for('settings.download_logs', hours=24) }}" download>Download Logs</a>
+                <button class="header-button" style="background-color: #FFD600; color: #333;" onclick="handleShutdown(true)">Reboot</button>
+                <button class="header-button" style="background-color: #E53935; color: #fff;" onclick="handleShutdown(false)">Shutdown</button>
+            </div>
+        </header>
+        <div class="separator"></div>
+        <!-- Settings Content -->
+        <form class="settings-form">
+            <div id="settings-container">
+                <div class="form-group">
+                    <label for="deviceName" class="form-label">Device Name:</label>
+                    <input type="text" id="deviceName" name="deviceName"
+                        value="{{ device_settings.device_name or '' }}"
+                        placeholder="{{ device_settings.device_name or 'DashPi' }}"
+                        class="form-input" style="max-width: 250px;">
+                    <span class="form-hint" style="font-size: 0.8em; opacity: 0.7;">
+                        Access this device at <strong>http://{{ device_settings.device_name or 'hostname' }}.local</strong>
+                    </span>
+                </div>
+                <div class="form-group nowrap">
+                    <!-- Orientation Dropdown -->
+                    <div class="form-group">
+                        <label for="orientation" class="form-label">Orientation:</label>
+                        <select id="orientation" name="orientation" class="form-input">
+                            <option value="horizontal" {% if device_settings.orientation == "horizontal" %}selected{% endif %}>Horizontal</option>
+                            <option value="vertical" {% if device_settings.orientation == "vertical" %}selected{% endif %}>Vertical</option>
+                        </select>
+                    </div>
+                    <div class="form-group nowrap">
+                        <!-- Invert Image Checkbox -->
+                        <label class="form-label" for="invertImage">Invert Image</label>
+                        <input type="checkbox" id="invertImage" name="invertImage" {% if device_settings.inverted_image %}checked{% endif %}>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <!-- Timezone Dropdown -->
+                    <div class="form-group nowrap">
+                        <label for="timezone" class="form-label">Time Zone:</label>
+                        <input
+                            type="text"
+                            id="timezone"
+                            name="timezoneName"
+                            class="form-input"
+                            list="timezoneList"
+                            placeholder="Type to search..."
+                            value="{{ device_settings.timezone }}"
+                        />
+                        <datalist id="timezoneList">
+                            {% for timezone in timezones %}
+                            <option value="{{ timezone }}"></option>
+                            {% endfor %}
+                        </datalist>
+                    </div>
+
+                    <!-- Time Format Dropdown -->
+                    <div class="form-group nowrap">
+                        <label for="timeFormat" class="form-label">Time Format:</label>
+                        <select id="timeFormat" name="timeFormat" class="form-input">
+                            <option value="12h" {% if device_settings.time_format == "12h" %}selected{% endif %}>12 Hour (AM/PM)</option>
+                            <option value="24h" {% if device_settings.time_format == "24h" %}selected{% endif %}>24 Hour</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group nowrap">
+                    <label class="form-label" for="showPluginIcon">Show Plugin Icon on Display</label>
+                        <input type="checkbox" id="showPluginIcon" name="showPluginIcon" {% if device_settings.show_plugin_icon %}checked{% endif %}>
+                    </label>
+                </div>
+                <div class="form-group nowrap">
+                    <label class="form-label" for="logSystemStats">Log System Stats</label>
+                        <input type="checkbox" id="logSystemStats" name="logSystemStats" {% if device_settings.log_system_stats %}checked{% endif %}>
+                    </label>
+                </div>
+                <div class="form-group nowrap">
+                    <label class="form-label" for="displayTransitions">Crossfade Transitions (LCD)</label>
+                        <input type="checkbox" id="displayTransitions" name="displayTransitions" {% if device_settings.get('display_transitions', {}).get('enabled') %}checked{% endif %}>
+                    </label>
+                </div>
+
+                <div class="separator" style="margin: 16px 0;"></div>
+                <div class="form-group">
+                    <label for="saturation" class="form-label" style="min-width: 100px;">Saturation:</label>
+                    <span id="saturation-value">{{ device_settings.get('image_settings', {}).get('saturation', 1.0) }}</span>
+                    <input
+                        type="range"
+                        id="saturation"
+                        name="saturation"
+                        class="form-input"
+                        min="0" max="2" step="0.1"
+                        value="{{ device_settings.get('image_settings', {}).get('saturation', 1.0) }}"
+                        style="max-width: 400px;"
+                        oninput="updateSliderValue(this)"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="contrast" class="form-label" style="min-width: 100px;">Contrast:</label>
+                    <span id="contrast-value">{{ device_settings.get('image_settings', {}).get('contrast', 1.0) }}</span>
+                    <input
+                        type="range"
+                        id="contrast"
+                        name="contrast"
+                        class="form-input"
+                        min="0" max="2" step="0.1"
+                        value="{{ device_settings.get('image_settings', {}).get('contrast', 1.0) }}"
+                        style="max-width: 400px;"
+                        oninput="updateSliderValue(this)"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="sharpness" class="form-label" style="min-width: 100px;">Sharpness:</label>
+                    <span id="sharpness-value">{{ device_settings.get('image_settings', {}).get('sharpness', 1.0) }}</span>
+                    <input
+                        type="range"
+                        id="sharpness"
+                        name="sharpness"
+                        class="form-input"
+                        min="0" max="2" step="0.1"
+                        value="{{ device_settings.get('image_settings', {}).get('sharpness', 1.0) }}"
+                        style="max-width: 400px;"
+                        oninput="updateSliderValue(this)"
+                    />
+                </div>
+                <!-- Brightness Day/Night Schedule -->
+                {% set bs = device_settings.get('brightness_schedule', {}) %}
+                {% set bs_enabled = bs.get('enabled', false) %}
+                {% set day_brightness = bs.get('day_brightness', device_settings.get('image_settings', {}).get('brightness', 1.0)) %}
+                {% set evening_brightness = bs.get('evening_brightness', 0.6) %}
+                {% set night_brightness = bs.get('night_brightness', 0.3) %}
+                {% set day_start = bs.get('day_start', '07:00') %}
+                {% set evening_start = bs.get('evening_start', '18:00') %}
+                {% set night_start = bs.get('night_start', '22:00') %}
+
+                <div class="form-group nowrap" style="margin-bottom: 8px;">
+                    <label class="form-label" for="brightnessScheduleEnabled">Schedule Brightness</label>
+                    <input type="checkbox" id="brightnessScheduleEnabled" name="brightnessScheduleEnabled"
+                           {% if bs_enabled %}checked{% endif %}
+                           onchange="toggleBrightnessSchedule()">
+                </div>
+
+                <!-- Single brightness (when schedule off) -->
+                <div id="brightnessSingle" class="form-group" {% if bs_enabled %}style="display: none;"{% endif %}>
+                    <label for="dayBrightness" class="form-label" style="min-width: 100px;">Brightness:</label>
+                    <span id="dayBrightness-value">{{ 'Off' if day_brightness == 0 else day_brightness }}</span>
+                    <input type="range" id="dayBrightness" name="dayBrightness" class="form-input"
+                           min="0" max="2" step="0.1" value="{{ day_brightness }}"
+                           style="max-width: 400px;" oninput="updateSliderValue(this)"/>
+                </div>
+
+                <!-- Day/Night rows (when schedule on) -->
+                <div id="brightnessScheduleRows" {% if not bs_enabled %}style="display: none;"{% endif %}>
+                    <div class="form-group" style="align-items: center;">
+                        <label class="form-label" style="min-width: 50px;">Day:</label>
+                        <input type="time" id="dayStart" name="dayStart" value="{{ day_start }}" class="form-input" style="max-width: 120px;">
+                        <span id="dayBrightnessScheduled-value" style="min-width: 24px; text-align: center;">{{ 'Off' if day_brightness == 0 else day_brightness }}</span>
+                        <input type="range" id="dayBrightnessScheduled" name="dayBrightnessScheduled" class="form-input"
+                               min="0" max="2" step="0.1" value="{{ day_brightness }}"
+                               style="max-width: 300px;" oninput="updateSliderValue(this); syncBrightness('day')"/>
+                    </div>
+                    <div class="form-group" style="align-items: center;">
+                        <label class="form-label" style="min-width: 50px;">Evening:</label>
+                        <input type="time" id="eveningStart" name="eveningStart" value="{{ evening_start }}" class="form-input" style="max-width: 120px;">
+                        <span id="eveningBrightness-value" style="min-width: 24px; text-align: center;">{{ 'Off' if evening_brightness == 0 else evening_brightness }}</span>
+                        <input type="range" id="eveningBrightness" name="eveningBrightness" class="form-input"
+                               min="0" max="2" step="0.1" value="{{ evening_brightness }}"
+                               style="max-width: 300px;" oninput="updateSliderValue(this)"/>
+                    </div>
+                    <div class="form-group" style="align-items: center;">
+                        <label class="form-label" style="min-width: 50px;">Night:</label>
+                        <input type="time" id="nightStart" name="nightStart" value="{{ night_start }}" class="form-input" style="max-width: 120px;">
+                        <span id="nightBrightness-value" style="min-width: 24px; text-align: center;">{{ 'Off' if night_brightness == 0 else night_brightness }}</span>
+                        <input type="range" id="nightBrightness" name="nightBrightness" class="form-input"
+                               min="0" max="2" step="0.1" value="{{ night_brightness }}"
+                               style="max-width: 300px;" oninput="updateSliderValue(this)"/>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <!-- WiFi Section -->
+        <div class="separator"></div>
+        <div class="form-group" style="padding: 0 16px;">
+            <label class="form-label" style="font-size: 1.1em; font-weight: bold;">WiFi</label>
+            <div style="display: flex; align-items: center; gap: 16px; margin-top: 4px; flex-wrap: wrap;">
+                <span style="opacity: 0.8;">
+                    {% if wifi_ssid %}
+                        Connected to <strong>{{ wifi_ssid }}</strong>
+                        {% if wifi_ip %} ({{ wifi_ip }}){% endif %}
+                    {% else %}
+                        Not connected
+                    {% endif %}
+                </span>
+                <button type="button" class="header-button"
+                        onclick="toggleWifiForm()">Change WiFi</button>
+                <button type="button" class="header-button" style="background-color: #e67e22; color: #fff;"
+                        onclick="reconfigureWifi()">Hotspot Setup</button>
+            </div>
+            <!-- Inline WiFi change form -->
+            <div id="wifiChangeForm" style="display: none; margin-top: 12px; padding: 12px; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color);">
+                <div style="margin-bottom: 8px;">
+                    <select id="wifiNetworkList" onchange="onWifiNetworkSelect()" class="form-input">
+                        <option value="">Select a network...</option>
+                    </select>
+                </div>
+                <div id="wifiOtherRow" style="display: none; margin-bottom: 8px;">
+                    <input type="text" id="newWifiSsid" placeholder="Network name (SSID)" class="form-input"
+                           autocapitalize="none" autocorrect="off">
+                </div>
+                <div id="wifiPasswordRow" style="display: none; margin-bottom: 10px;">
+                    <input type="password" id="newWifiPassword" placeholder="Password" class="form-input"
+                           autocapitalize="none" autocorrect="off">
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="header-button" onclick="switchWifi()"
+                            style="background-color: #1abc9c; color: #fff;">Connect</button>
+                    <button type="button" class="header-button" onclick="scanWifiNetworks()">Rescan</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Backup & Restore Section -->
+        <div class="separator"></div>
+        <div class="form-group" style="padding: 0 16px;">
+            <label class="form-label" style="font-size: 1.1em; font-weight: bold;">Backup & Restore</label>
+
+            <!-- Export -->
+            <div style="margin-top: 8px;">
+                <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                    <button type="button" class="header-button" style="background-color: #2c66b1; color: #fff;"
+                            onclick="exportConfig()">Export Config</button>
+                    <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                        <input type="checkbox" id="exportIncludeEnv"> Include API Keys
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                        <input type="checkbox" id="exportIncludeImages"> Include Saved Images
+                    </label>
+                </div>
+            </div>
+
+            <!-- Import -->
+            <div style="margin-top: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <input type="file" id="importFile" accept=".zip" style="max-width: 300px;" class="form-input">
+                    <button type="button" class="header-button" style="background-color: #e67e22; color: #fff;"
+                            onclick="importConfig()" id="importBtn">Import Config</button>
+                </div>
+                <span class="form-hint" style="font-size: 0.8em; opacity: 0.7; margin-top: 4px; display: block;">
+                    Upload a previously exported .zip backup to restore settings.
+                </span>
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="buttons-container">
+            <button type="button" onclick="handleAction()" class="action-button">Save</button>
+        </div>
+    </div>
+    <!-- Success/Error Modal -->
+    {% include 'response_modal.html' %}
+
+    <script>
+        function exportConfig() {
+            const includeEnv = document.getElementById('exportIncludeEnv').checked;
+            const includeImages = document.getElementById('exportIncludeImages').checked;
+            const params = new URLSearchParams();
+            if (includeEnv) params.set('include_env', 'true');
+            if (includeImages) params.set('include_images', 'true');
+            window.location.href = '/api/config/export?' + params.toString();
+        }
+
+        async function importConfig() {
+            const fileInput = document.getElementById('importFile');
+            const file = fileInput.files[0];
+            if (!file) {
+                showResponseModal('failure', 'Please select a .zip backup file first.');
+                return;
+            }
+            if (!file.name.toLowerCase().endsWith('.zip')) {
+                showResponseModal('failure', 'File must be a .zip archive.');
+                return;
+            }
+            if (!confirm('This will replace your current configuration with the backup.\n\nA backup of your current config will be saved automatically.\n\nProceed?')) {
+                return;
+            }
+
+            const btn = document.getElementById('importBtn');
+            btn.disabled = true;
+            btn.textContent = 'Importing...';
+
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const resp = await fetch('/api/config/import', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    showResponseModal('failure', data.error || 'Import failed.');
+                    btn.disabled = false;
+                    btn.textContent = 'Import Config';
+                    return;
+                }
+
+                showResponseModal('success', data.message);
+
+                if (data.restart_required) {
+                    if (confirm('Restart service now to apply changes?')) {
+                        btn.textContent = 'Restarting...';
+                        await fetch("{{ url_for('settings.shutdown') }}", {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ reboot: true })
+                        });
+                        // Poll until service comes back
+                        setTimeout(() => {
+                            let attempts = 0;
+                            const poll = setInterval(async () => {
+                                attempts++;
+                                try {
+                                    const r = await fetch('/settings', { method: 'HEAD' });
+                                    if (r.ok) {
+                                        clearInterval(poll);
+                                        window.location.reload();
+                                    }
+                                } catch (e) { /* still restarting */ }
+                                if (attempts > 30) {
+                                    clearInterval(poll);
+                                    btn.textContent = 'Reload';
+                                    btn.disabled = false;
+                                    btn.onclick = () => window.location.reload();
+                                }
+                            }, 2000);
+                        }, 5000);
+                    } else {
+                        btn.disabled = false;
+                        btn.textContent = 'Import Config';
+                    }
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = 'Import Config';
+                }
+            } catch (err) {
+                showResponseModal('failure', 'Import failed: ' + err.message);
+                btn.disabled = false;
+                btn.textContent = 'Import Config';
+            }
+        }
+    </script>
+</body>
+</html>

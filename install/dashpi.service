@@ -1,0 +1,20 @@
+[Unit]
+Description=DashPi App
+After=dashpi-splash.service
+Wants=network-online.target
+
+[Service]
+User=root
+RuntimeDirectory=dashpi
+WorkingDirectory=/run/dashpi
+ExecStart=/usr/local/bin/dashpi run
+Restart=on-failure
+RestartSec=60
+KillSignal=SIGINT
+StandardOutput=journal
+StandardError=journal
+CPUQuota=40%
+MemoryMax=300M
+
+[Install]
+WantedBy=multi-user.target

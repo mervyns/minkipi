@@ -1,0 +1,256 @@
+"""App utilities — fonts, paths, form parsing, startup image, and file handling."""
+
+import logging
+import os
+import socket
+import subprocess
+
+from pathlib import Path
+from PIL import Image, ImageDraw, ImageFont, ImageOps
+Image.MAX_IMAGE_PIXELS = 200_000_000  # Allow up to 200MP (default 89MP triggers warnings)
+
+logger = logging.getLogger(__name__)
+
+FONT_SIZES = {
+    "x-small": 0.7,
+    "smaller": 0.8,
+    "small": 0.9,
+    "normal": 1,
+    "large": 1.1,
+    "larger": 1.2,
+    "x-large": 1.3
+}
+
+FONT_FAMILIES = {
+    "Dogica": [{
+        "font-weight": "normal",
+        "file": "dogicapixel.ttf"
+    },{
+        "font-weight": "bold",
+        "file": "dogicapixelbold.ttf"
+    }],
+    "Jost": [{
+        "font-weight": "normal",
+        "file": "Jost.ttf"
+    },{
+        "font-weight": "bold",
+        "file": "Jost-SemiBold.ttf"
+    }],
+    "Napoli": [{
+        "font-weight": "normal",
+        "file": "Napoli.ttf"
+    }],
+    "DS-Digital": [{
+        "font-weight": "normal",
+        "file": os.path.join("DS-DIGI", "DS-DIGI.TTF")
+    }]
+}
+
+FONTS = {
+    "ds-gigi": "DS-DIGI.TTF",
+    "napoli": "Napoli.ttf",
+    "jost": "Jost.ttf",
+    "jost-semibold": "Jost-SemiBold.ttf"
+}
+
+def sanitize_filename(filename):
+    """Sanitize a filename while preserving spaces, parens, and other harmless characters.
+
+    Blocks path traversal and null bytes but keeps the original appearance
+    unlike werkzeug's secure_filename() which strips spaces and special chars.
+    """
+    # Strip directory components
+    filename = os.path.basename(filename)
+    # Remove null bytes
+    filename = filename.replace('\x00', '')
+    # Strip leading/trailing whitespace and dots (prevents hidden files / Windows issues)
+    filename = filename.strip().strip('.')
+    # Collapse path separators that might survive basename on edge cases
+    filename = filename.replace('/', '_').replace('\\', '_')
+    return filename or 'unnamed'
+
+def resolve_path(file_path):
+    """Resolve a relative path against the src directory."""
+    src_dir = os.getenv("SRC_DIR")
+    if src_dir is None:
+        # Default to the src directory
+        src_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    
+    src_path = Path(src_dir)
+    return str(src_path / file_path)
+
+def get_ip_address():
+    """Get the device's LAN IP address by probing a UDP socket."""
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        s.connect(("8.8.8.8", 80))
+        ip_address = s.getsockname()[0]
+    return ip_address
+
+def get_wifi_name():
+    """Get the current WiFi network name (SSID), or None if not connected."""
+    try:
+        output = subprocess.check_output(['iwgetid', '-r']).decode('utf-8').strip()
+        return output
+    except subprocess.CalledProcessError:
+        return None
+
+def is_connected():
+    """Check if the Raspberry Pi has an internet connection."""
+    try:
+        # Try to connect to Google's public DNS server
+        socket.create_connection(("8.8.8.8", 53), timeout=2)
+        return True
+    except OSError:
+        return False
+
+def get_font(font_name, font_size=50, font_weight="normal"):
+    """Load a bundled font by family name and weight.
+
+    Args:
+        font_name: Font family name — one of "Jost", "Dogica", "Napoli", "DS-Digital".
+        font_size: Size in points (default 50).
+        font_weight: "normal" or "bold" (default "normal"). Falls back to first
+            available variant if the requested weight doesn't exist.
+
+    Returns:
+        PIL ImageFont.truetype instance, or None if font_name is not recognized.
+    """
+    if font_name in FONT_FAMILIES:
+        font_variants = FONT_FAMILIES[font_name]
+
+        font_entry = next((entry for entry in font_variants if entry["font-weight"] == font_weight), None)
+        if font_entry is None:
+            font_entry = font_variants[0]  # Default to first available variant
+
+        if font_entry:
+            font_path = resolve_path(os.path.join("static", "fonts", font_entry["file"]))
+            return ImageFont.truetype(font_path, font_size)
+        else:
+            logger.warning(f"Requested font weight not found: font_name={font_name}, font_weight={font_weight}")
+    else:
+        logger.warning(f"Requested font not found: font_name={font_name}")
+
+    return None
+
+def get_fonts():
+    """Return a list of all bundled font variants with paths and metadata."""
+    fonts_list = []
+    for font_family, variants in FONT_FAMILIES.items():
+        for variant in variants:
+            fonts_list.append({
+                "font_family": font_family,
+                "url": resolve_path(os.path.join("static", "fonts", variant["file"])),
+                "font_weight": variant.get("font-weight", "normal"),
+                "font_style": variant.get("font-style", "normal"),
+            })
+    return fonts_list
+
+def get_font_path(font_name):
+    """Return the absolute path for a font by its short name."""
+    return resolve_path(os.path.join("static", "fonts", FONTS[font_name]))
+
+def generate_startup_image(dimensions=(800,480)):
+    """Generate the first-boot splash image showing hostname and access URL."""
+    bg_color = (255,255,255)
+    text_color = (0,0,0)
+    width, height = dimensions
+
+    hostname = socket.gethostname()
+
+    image = Image.new("RGBA", dimensions, bg_color)
+    image_draw = ImageDraw.Draw(image)
+
+    title_font_size = width * 0.145
+    image_draw.text((width/2, height/2), hostname or "DashPi", anchor="mm", fill=text_color, font=get_font("Jost", title_font_size))
+
+    text = f"To get started, visit http://{hostname}.local"
+    text_font_size = width * 0.032
+
+    # Draw the instructions
+    y_text = height * 3 / 4
+    image_draw.text((width/2, y_text), text, anchor="mm", fill=text_color, font=get_font("Jost", text_font_size))
+
+    # Draw the IP on a line below (skip if no network)
+    try:
+        ip = get_ip_address()
+        ip_text = f"or http://{ip}"
+        ip_text_font_size = width * 0.032
+        bbox = image_draw.textbbox((0, 0), text, font=get_font("Jost", text_font_size))
+        text_height = bbox[3] - bbox[1]
+        ip_y = y_text + text_height * 1.35
+        image_draw.text((width/2, ip_y), ip_text, anchor="mm", fill=text_color, font=get_font("Jost", ip_text_font_size))
+    except OSError:
+        logger.warning("Could not get IP address for startup image (no network)")
+
+    return image
+
+def parse_form(request_form):
+    """Parse Flask form data, handling the hidden+checkbox toggle pattern.
+
+    For checkboxes with a hidden fallback (hidden value="false", checkbox value="true"),
+    the form sends both values when checked. We take the LAST value for scalar fields,
+    which is the checkbox value when checked, or the hidden value when unchecked.
+    """
+    request_dict = {}
+    for key in request_form.keys():
+        if key.endswith('[]'):
+            request_dict[key] = request_form.getlist(key)
+        else:
+            values = request_form.getlist(key)
+            request_dict[key] = values[-1] if values else ''
+    return request_dict
+
+def handle_request_files(request_files, form_data=None):
+    """Process uploaded files: save to disk, fix EXIF orientation, return path map."""
+    if form_data is None:
+        form_data = {}
+    allowed_file_extensions = {'pdf', 'png', 'avif', 'jpg', 'jpeg', 'gif', 'webp', 'heif', 'heic'}
+    file_location_map = {}
+    # handle existing file locations being provided as part of the form data
+    for key in set(request_files.keys()):
+        is_list = key.endswith('[]')
+        if key in form_data:
+            file_location_map[key] = form_data.getlist(key) if is_list else form_data.get(key)
+    # add new files in the request
+    for key, file in request_files.items(multi=True):
+        is_list = key.endswith('[]')
+        file_name = file.filename
+        if not file_name:
+            continue
+
+        extension = os.path.splitext(file_name)[1].replace('.', '')
+        if not extension or extension.lower() not in allowed_file_extensions:
+            continue
+
+        file_name = os.path.basename(file_name)
+
+        file_save_dir = resolve_path(os.path.join("static", "images", "saved"))
+        file_path = os.path.join(file_save_dir, file_name)
+
+        # Save the raw upload to disk first (no PIL, no memory spike)
+        file.save(file_path)
+
+        # Fix EXIF orientation in-place for JPEGs
+        # Skip for very large images to avoid OOM on Pi
+        if extension in {'jpg', 'jpeg'}:
+            try:
+                with Image.open(file_path) as img:
+                    w, h = img.size
+                    megapixels = (w * h) / 1_000_000
+                    if megapixels > 50:
+                        logger.info(f"Skipping EXIF for {file_name} ({megapixels:.0f}MP) - too large")
+                    else:
+                        transposed = ImageOps.exif_transpose(img)
+                        if transposed is not img:
+                            transposed.save(file_path)
+                            transposed.close()
+                import gc; gc.collect()
+            except Exception as e:
+                logger.warning(f"EXIF processing error for {file_name}: {e}")
+
+        if is_list:
+            file_location_map.setdefault(key, [])
+            file_location_map[key].append(file_path)
+        else:
+            file_location_map[key] = file_path
+    return file_location_map
