@@ -23,8 +23,9 @@ declare -a VENDORS=(
 # Download each vendor file
 for vendor in "${VENDORS[@]}"; do
   IFS='|' read -r name url output <<< "$vendor"
+  mkdir -p "$(dirname "$output")"
   echo "Updating $name..."
-  if curl -sL "$url" -o "$output"; then
+  if curl -sfL "$url" -o "$output"; then
     echo "  ✓ Downloaded to $output"
   else
     echo "  ✗ Failed to download $name" >&2
