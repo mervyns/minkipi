@@ -21,6 +21,7 @@ def plugin_page(plugin_id):
     loop_name = request.args.get('loop_name', '')
     edit_mode = request.args.get('edit_mode', 'false') == 'true'
     add_mode = request.args.get('add_mode', 'false') == 'true'
+    instance_id = request.args.get('instance_id', '')
 
     # If editing a loop plugin, get existing settings
     existing_settings = {}
@@ -28,7 +29,10 @@ def plugin_page(plugin_id):
     if edit_mode and loop_name:
         loop = loop_manager.get_loop(loop_name)
         if loop:
-            plugin_ref = next((ref for ref in loop.plugin_order if ref.plugin_id == plugin_id), None)
+            if instance_id:
+                plugin_ref = next((ref for ref in loop.plugin_order if ref.instance_id == instance_id), None)
+            else:
+                plugin_ref = next((ref for ref in loop.plugin_order if ref.plugin_id == plugin_id), None)
             if plugin_ref:
                 existing_settings = plugin_ref.plugin_settings or {}
                 existing_refresh_interval = plugin_ref.refresh_interval_seconds
@@ -45,6 +49,7 @@ def plugin_page(plugin_id):
             template_params["loop_add_mode"] = add_mode
             template_params["loop_name"] = loop_name
             template_params["loop_refresh_interval"] = existing_refresh_interval
+            template_params["instance_id"] = instance_id
 
             # If in edit mode, merge loop settings with last-used settings.
             # Last-used settings provide operational data (file lists, etc.);

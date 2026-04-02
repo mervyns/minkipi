@@ -960,7 +960,7 @@ class LoopRefresh(RefreshAction):
         always generate a new image to get a different random selection.
         """
         # Determine the file path for the plugin's image
-        plugin_image_path = os.path.join(device_config.plugin_image_dir, f"loop_{self.plugin_reference.plugin_id}.jpg")
+        plugin_image_path = os.path.join(device_config.plugin_image_dir, f"loop_{self.plugin_reference.instance_id}.jpg")
 
         # Check if this plugin has randomization enabled
         settings = self.plugin_reference.plugin_settings or {}

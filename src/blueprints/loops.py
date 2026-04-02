@@ -107,18 +107,11 @@ def add_plugin_to_loop():
     if not plugin_config:
         return jsonify({"error": "Plugin not found"}), 404
 
-    if not loop.add_plugin(plugin_id, refresh_interval):
-        return jsonify({"error": f"Plugin '{plugin_id}' already in loop"}), 400
-
-    # Add settings if provided
-    for plugin_ref in loop.plugin_order:
-        if plugin_ref.plugin_id == plugin_id:
-            plugin_ref.plugin_settings = plugin_settings
-            break
+    instance_id = loop.add_plugin(plugin_id, refresh_interval, plugin_settings=plugin_settings)
 
     device_config.write_config()
 
-    return jsonify({"success": True, "message": f"Added plugin to '{loop_name}'"})
+    return jsonify({"success": True, "instance_id": instance_id, "message": f"Added plugin to '{loop_name}'"})
 
 @loops_bp.route('/remove_plugin_from_loop', methods=['POST'])
 def remove_plugin_from_loop():
@@ -128,13 +121,13 @@ def remove_plugin_from_loop():
 
     data = request.json or {}
     loop_name = data.get("loop_name")
-    plugin_id = data.get("plugin_id")
+    instance_id = data.get("instance_id") or data.get("plugin_id")
 
     loop = loop_manager.get_loop(loop_name)
     if not loop:
         return jsonify({"error": "Loop not found"}), 404
 
-    if not loop.remove_plugin(plugin_id):
+    if not loop.remove_plugin(instance_id):
         return jsonify({"error": "Plugin not found in loop"}), 404
 
     device_config.write_config()
@@ -149,13 +142,13 @@ def reorder_plugins():
 
     data = request.json or {}
     loop_name = data.get("loop_name")
-    plugin_ids = data.get("plugin_ids")
+    instance_ids = data.get("instance_ids") or data.get("plugin_ids")
 
     loop = loop_manager.get_loop(loop_name)
     if not loop:
         return jsonify({"error": "Loop not found"}), 404
 
-    loop.reorder_plugins(plugin_ids)
+    loop.reorder_plugins(instance_ids)
     device_config.write_config()
 
     return jsonify({"success": True, "message": "Plugin order updated"})
@@ -192,7 +185,7 @@ def update_plugin_settings():
 
     data = request.json or {}
     loop_name = data.get("loop_name")
-    plugin_id = data.get("plugin_id")
+    instance_id = data.get("instance_id") or data.get("plugin_id")
     plugin_settings = data.get("plugin_settings", {})
     refresh_interval = data.get("refresh_interval_seconds")
 
@@ -201,7 +194,7 @@ def update_plugin_settings():
         return jsonify({"error": "Loop not found"}), 404
 
     # Find and update plugin reference
-    plugin_ref = next((ref for ref in loop.plugin_order if ref.plugin_id == plugin_id), None)
+    plugin_ref = next((ref for ref in loop.plugin_order if ref.instance_id == instance_id), None)
     if not plugin_ref:
         return jsonify({"error": "Plugin not found in loop"}), 404
 
@@ -303,14 +296,14 @@ def refresh_plugin_now():
 
     data = request.json or {}
     loop_name = data.get("loop_name")
-    plugin_id = data.get("plugin_id")
+    instance_id = data.get("instance_id") or data.get("plugin_id")
 
     loop = loop_manager.get_loop(loop_name)
     if not loop:
         return jsonify({"error": "Loop not found"}), 404
 
     # Find the plugin reference in the loop
-    plugin_ref = next((ref for ref in loop.plugin_order if ref.plugin_id == plugin_id), None)
+    plugin_ref = next((ref for ref in loop.plugin_order if ref.instance_id == instance_id), None)
     if not plugin_ref:
         return jsonify({"error": "Plugin not found in loop"}), 404
 
@@ -323,7 +316,7 @@ def refresh_plugin_now():
             # Return 202 Accepted - refresh is happening in background
             return jsonify({
                 "success": True,
-                "message": f"Refreshing {plugin_id}... Display will update shortly."
+                "message": f"Refreshing {plugin_ref.plugin_id}... Display will update shortly."
             }), 202
         else:
             return jsonify({"error": "Refresh task not running"}), 503

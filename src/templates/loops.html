@@ -127,6 +127,7 @@
                         {% for plugin_ref in loop_item.plugin_order %}
                         <div class="plugin-ref-item"
                              data-plugin-id="{{ plugin_ref.plugin_id }}"
+                             data-instance-id="{{ plugin_ref.instance_id }}"
                              draggable="true"
                              style="display: flex; align-items: center; padding: 12px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; gap: 12px; cursor: move; transition: all 0.2s ease;">
                             <span style="font-size: 18px; color: var(--text-secondary);">⋮⋮</span>
@@ -139,7 +140,7 @@
                                 <div style="font-size: 13px; color: var(--text-secondary); font-weight: 400;">Refreshes every {% if plugin_ref.refresh_interval_seconds < 60 %}{{ plugin_ref.refresh_interval_seconds | int }}s{% else %}{{ (plugin_ref.refresh_interval_seconds / 60) | int }} min{% endif %}</div>
                             </div>
                             <button type="button"
-                                    onclick="refreshPluginNow('{{ loop_item.name }}', '{{ plugin_ref.plugin_id }}')"
+                                    onclick="refreshPluginNow('{{ loop_item.name }}', '{{ plugin_ref.instance_id }}')"
                                     class="action-button"
                                     style="padding: 6px 12px; font-size: 13px; background: var(--accent-primary) !important; font-weight: 500; color: white !important;"
                                     title="Refresh and display this screen now">
@@ -148,13 +149,14 @@
                             <button type="button"
                                     data-loop-name="{{ loop_item.name }}"
                                     data-plugin-id="{{ plugin_ref.plugin_id }}"
+                                    data-instance-id="{{ plugin_ref.instance_id }}"
                                     data-refresh-interval="{{ plugin_ref.refresh_interval_seconds }}"
                                     data-plugin-settings="{{ plugin_ref.plugin_settings | tojson | forceescape }}"
                                     class="edit-plugin-btn action-button"
                                     style="padding: 6px 12px; font-size: 13px; background: var(--button-bg) !important; font-weight: 500; color: var(--text-primary) !important;">
                                 Edit
                             </button>
-                            <button onclick="removePluginFromLoop('{{ loop_item.name }}', '{{ plugin_ref.plugin_id }}')"
+                            <button onclick="removePluginFromLoop('{{ loop_item.name }}', '{{ plugin_ref.instance_id }}')"
                                     class="action-button"
                                     style="padding: 6px 12px; font-size: 13px; background: #dc3545 !important; font-weight: 500; color: white !important;"
                                     title="Remove this plugin from the loop">

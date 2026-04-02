@@ -126,10 +126,10 @@ async function toggleRandomize(loopName) {
 }
 
 // Plugin Actions
-async function refreshPluginNow(loopName, pluginId) {
+async function refreshPluginNow(loopName, instanceId) {
     // Show status bar immediately for instant feedback
     if (window.loopsStatus) {
-        window.loopsStatus.showImmediate(pluginId);
+        window.loopsStatus.showImmediate(instanceId);
     }
 
     try {
@@ -138,7 +138,7 @@ async function refreshPluginNow(loopName, pluginId) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 loop_name: loopName,
-                plugin_id: pluginId
+                instance_id: instanceId
             })
         });
 
@@ -154,14 +154,14 @@ async function refreshPluginNow(loopName, pluginId) {
     }
 }
 
-async function removePluginFromLoop(loopName, pluginId) {
+async function removePluginFromLoop(loopName, instanceId) {
     try {
         const response = await fetch('/remove_plugin_from_loop', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 loop_name: loopName,
-                plugin_id: pluginId
+                instance_id: instanceId
             })
         });
 
@@ -245,7 +245,8 @@ window.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', function() {
             const loopName = this.dataset.loopName;
             const pluginId = this.dataset.pluginId;
-            window.location.href = `/plugin/${pluginId}?loop_name=${encodeURIComponent(loopName)}&edit_mode=true`;
+            const instanceId = this.dataset.instanceId;
+            window.location.href = `/plugin/${pluginId}?loop_name=${encodeURIComponent(loopName)}&edit_mode=true&instance_id=${encodeURIComponent(instanceId)}`;
         });
     });
 
@@ -311,7 +312,7 @@ function setupPluginDragAndDrop() {
 }
 
 async function savePluginOrder(loopName, pluginList) {
-    const pluginIds = Array.from(pluginList.children).map(item => item.dataset.pluginId);
+    const instanceIds = Array.from(pluginList.children).map(item => item.dataset.instanceId);
 
     try {
         const response = await fetch('/reorder_plugins', {
@@ -319,7 +320,7 @@ async function savePluginOrder(loopName, pluginList) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 loop_name: loopName,
-                plugin_ids: pluginIds
+                instance_ids: instanceIds
             })
         });
 

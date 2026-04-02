@@ -32,6 +32,7 @@
         const loopAddMode = {{ loop_add_mode | default(false) | tojson }};
         const loopName = {{ loop_name | default('') | tojson }};
         const loopRefreshInterval = {{ loop_refresh_interval | default(0) | tojson }};
+        const instanceId = {{ instance_id | default('') | tojson }};
 
         let uploadedFiles = {};
 
@@ -168,6 +169,7 @@
                         body: JSON.stringify({
                             loop_name: loopName,
                             plugin_id: '{{ plugin.id }}',
+                            instance_id: instanceId,
                             plugin_settings: settings,
                             refresh_interval_seconds: refreshIntervalSeconds
                         })

@@ -4,6 +4,7 @@ import os
 import json
 import logging
 import random
+import uuid
 from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
@@ -213,35 +214,30 @@ class Loop:
             # Wrapping window across midnight (e.g., 21:00-03:00)
             return current_time >= self.start_time or current_time < self.end_time
 
-    def add_plugin(self, plugin_id, refresh_interval_seconds):
-        """Add a plugin to this loop's rotation."""
-        # Check if plugin already exists in this loop
-        if any(ref.plugin_id == plugin_id for ref in self.plugin_order):
-            logger.warning(f"Plugin '{plugin_id}' already exists in loop '{self.name}'.")
-            return False
-        self.plugin_order.append(PluginReference(plugin_id, refresh_interval_seconds))
-        return True
+    def add_plugin(self, plugin_id, refresh_interval_seconds, plugin_settings=None):
+        """Add a plugin to this loop's rotation. Returns the new instance_id."""
+        ref = PluginReference(plugin_id, refresh_interval_seconds, plugin_settings=plugin_settings)
+        self.plugin_order.append(ref)
+        return ref.instance_id
 
-    def remove_plugin(self, plugin_id):
-        """Remove a plugin from this loop's rotation."""
+    def remove_plugin(self, instance_id):
+        """Remove a plugin instance from this loop's rotation."""
         initial_count = len(self.plugin_order)
-        self.plugin_order = [ref for ref in self.plugin_order if ref.plugin_id != plugin_id]
+        self.plugin_order = [ref for ref in self.plugin_order if ref.instance_id != instance_id]
 
         if len(self.plugin_order) == initial_count:
-            logger.warning(f"Plugin '{plugin_id}' not found in loop '{self.name}'.")
+            logger.warning(f"Plugin instance '{instance_id}' not found in loop '{self.name}'.")
             return False
         return True
 
-    def reorder_plugins(self, plugin_ids):
-        """Reorder plugins based on a list of plugin IDs."""
-        # Create a mapping of plugin_id to PluginReference
-        plugin_map = {ref.plugin_id: ref for ref in self.plugin_order}
+    def reorder_plugins(self, instance_ids):
+        """Reorder plugins based on a list of instance IDs."""
+        plugin_map = {ref.instance_id: ref for ref in self.plugin_order}
 
-        # Reorder based on provided IDs
         new_order = []
-        for plugin_id in plugin_ids:
-            if plugin_id in plugin_map:
-                new_order.append(plugin_map[plugin_id])
+        for instance_id in instance_ids:
+            if instance_id in plugin_map:
+                new_order.append(plugin_map[instance_id])
 
         self.plugin_order = new_order
 
@@ -377,14 +373,16 @@ class PluginReference:
 
     Attributes:
         plugin_id (str): Plugin identifier.
+        instance_id (str): Unique instance identifier (allows multiple instances of the same plugin).
         refresh_interval_seconds (int): How often to refresh this plugin's data.
         plugin_settings (dict): Optional settings for the plugin. If None/empty, plugin uses defaults.
         latest_refresh_time (str): ISO timestamp of last data refresh.
         weight (float): Base weight for random loop selection (default 1.0).
     """
 
-    def __init__(self, plugin_id, refresh_interval_seconds, plugin_settings=None, latest_refresh_time=None, weight=1.0):
+    def __init__(self, plugin_id, refresh_interval_seconds, plugin_settings=None, latest_refresh_time=None, weight=1.0, instance_id=None):
         self.plugin_id = plugin_id
+        self.instance_id = instance_id or f"{plugin_id}_{uuid.uuid4().hex[:6]}"
         self.refresh_interval_seconds = refresh_interval_seconds
         self.plugin_settings = plugin_settings or {}
         self.latest_refresh_time = latest_refresh_time
@@ -407,6 +405,7 @@ class PluginReference:
     def to_dict(self):
         d = {
             "plugin_id": self.plugin_id,
+            "instance_id": self.instance_id,
             "refresh_interval_seconds": self.refresh_interval_seconds,
             "plugin_settings": self.plugin_settings,
             "latest_refresh_time": self.latest_refresh_time
@@ -422,5 +421,6 @@ class PluginReference:
             refresh_interval_seconds=data["refresh_interval_seconds"],
             plugin_settings=data.get("plugin_settings", {}),
             latest_refresh_time=data.get("latest_refresh_time"),
-            weight=data.get("weight", 1.0)
+            weight=data.get("weight", 1.0),
+            instance_id=data.get("instance_id", data["plugin_id"])
         )
