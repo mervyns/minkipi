@@ -466,9 +466,16 @@ class RefreshTask:
 
         refresh_info = refresh_action.get_refresh_info()
         refresh_info.update({"refresh_time": current_dt.isoformat(), "image_hash": image_hash})
+        last_instance_id = getattr(latest_refresh, "instance_id", None)
+        current_instance_id = refresh_info.get("instance_id")
 
         is_manual = isinstance(refresh_action, ManualRefresh)
-        if is_manual or not self._displayed_this_boot or image_hash != latest_refresh.image_hash:
+        if (
+            is_manual
+            or not self._displayed_this_boot
+            or image_hash != latest_refresh.image_hash
+            or (current_instance_id is not None and current_instance_id != last_instance_id)
+        ):
             self._set_global_status("displaying", f"Sending to display: {plugin_name}...", plugin_name, plugin_id)
             logger.info(f"Updating display. | refresh_info: {refresh_info}")
             # Kill splash BEFORE writing to fb0 to prevent race condition
@@ -481,6 +488,7 @@ class RefreshTask:
             logger.info(f"Image already displayed, skipping refresh. | refresh_info: {refresh_info}")
             self._set_global_status("idle", f"No change: {plugin_name}", plugin_name, plugin_id)
 
+        # Keep logical refresh state current even when display write is skipped.
         self.device_config.refresh_info = RefreshInfo(**refresh_info)
 
         if isinstance(refresh_action, LoopRefresh):
@@ -943,7 +951,8 @@ class LoopRefresh(RefreshAction):
         return {
             "refresh_type": "Loop",
             "loop": self.loop.name,
-            "plugin_id": self.plugin_reference.plugin_id
+            "plugin_id": self.plugin_reference.plugin_id,
+            "instance_id": self.plugin_reference.instance_id
         }
 
     def get_plugin_id(self):

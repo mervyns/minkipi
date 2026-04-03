@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List — {{ device_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/main.css') }}">
+    <style>
+        body {
+            font-family: 'Jost', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 1rem;
+        }
+        .todo-app {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 1.4rem;
+            margin: 0 0 1rem 0;
+        }
+        .field { margin-bottom: 0.75rem; }
+        .field label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+        .field input, .field select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            box-sizing: border-box;
+        }
+        .field input:focus, .field select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 2px var(--input-focus);
+        }
+        .row { display: flex; gap: 0.75rem; }
+        .row .field { flex: 1; }
+
+        .list-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        .list-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .list-header input {
+            flex: 1;
+            padding: 0.4rem 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            background: var(--input-bg);
+            color: var(--text-primary);
+        }
+        .list-header input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 2px var(--input-focus);
+        }
+        .remove-list-btn {
+            background: none;
+            border: none;
+            color: var(--remove-btn-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            line-height: 1;
+        }
+        .remove-list-btn:hover { color: var(--remove-btn-hover); }
+
+        .items-list { list-style: none; padding: 0; margin: 0; }
+        .item-row {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.3rem 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .item-row:last-child { border-bottom: none; }
+        .item-row input[type="text"] {
+            flex: 1;
+            padding: 0.35rem 0.5rem;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            background: transparent;
+            color: var(--text-primary);
+        }
+        .item-row input[type="text"]:focus {
+            border-color: var(--border-color);
+            background: var(--input-bg);
+            outline: none;
+        }
+        .item-remove {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0 0.3rem;
+            opacity: 0.5;
+        }
+        .item-remove:hover { opacity: 1; color: var(--remove-btn-color); }
+
+        .add-item-btn {
+            background: none;
+            border: none;
+            color: var(--accent-primary);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.85rem;
+            padding: 0.3rem 0;
+            font-weight: 600;
+        }
+        .add-item-btn:hover { color: var(--accent-hover); }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+        .btn {
+            flex: 1;
+            padding: 0.6rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: var(--accent-primary);
+            color: #fff;
+        }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background: var(--button-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover { background: var(--button-hover); }
+
+        .toast {
+            position: fixed;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #fff;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .toast.success { background: var(--success-color); }
+        .toast.error { background: var(--failure-color); }
+        .toast.show { opacity: 1; }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #1a1a1a;
+                --bg-secondary: #2a2a2a;
+                --text-primary: #e0e0e0;
+                --text-secondary: #aaa;
+                --border-color: #444;
+                --border-light: #333;
+                --input-bg: #333;
+                --button-bg: #333;
+                --button-hover: #444;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="todo-app">
+        <h1>Todo List</h1>
+
+        <div class="field">
+            <label for="title">Title</label>
+            <input type="text" id="title" placeholder="Main title...">
+        </div>
+
+        <div class="row">
+            <div class="field">
+                <label for="listStyle">Style</label>
+                <select id="listStyle">
+                    <option value="disc">Disc</option>
+                    <option value="square">Square</option>
+                    <option value="'\25C6  '">Diamond</option>
+                    <option value="decimal">Decimal</option>
+                    <option value="lower-roman">Roman</option>
+                    <option value="lower-alpha">Alpha</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="fontSize">Font Size</label>
+                <select id="fontSize">
+                    <option value="x-small">XS</option>
+                    <option value="small">Small</option>
+                    <option value="normal">Normal</option>
+                    <option value="large">Large</option>
+                    <option value="x-large">XL</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="lists"></div>
+
+        <div class="actions">
+            <button class="btn btn-secondary" id="addListBtn">+ Add List</button>
+            <button class="btn btn-primary" id="saveBtn">Update Display</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const MAX_LISTS = 3;
+        const listsEl = document.getElementById('lists');
+
+        function showToast(msg, type) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast ' + type + ' show';
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        function createListCard(title, items) {
+            const card = document.createElement('div');
+            card.className = 'list-card';
+            card.innerHTML = `
+                <div class="list-header">
+                    <input type="text" value="${esc(title)}" placeholder="List title...">
+                    <button class="remove-list-btn" title="Remove list">&times;</button>
+                </div>
+                <ul class="items-list"></ul>
+                <button class="add-item-btn">+ Add item</button>
+            `;
+            card.querySelector('.remove-list-btn').onclick = () => { card.remove(); };
+            card.querySelector('.add-item-btn').onclick = () => addItem(card, '');
+            const ul = card.querySelector('.items-list');
+            items.forEach(item => addItem(card, item));
+            if (items.length === 0) addItem(card, '');
+            listsEl.appendChild(card);
+        }
+
+        function addItem(card, text) {
+            const ul = card.querySelector('.items-list');
+            const li = document.createElement('li');
+            li.className = 'item-row';
+            li.innerHTML = `
+                <input type="text" value="${esc(text)}" placeholder="Task...">
+                <button class="item-remove" title="Remove">&times;</button>
+            `;
+            li.querySelector('.item-remove').onclick = () => {
+                li.remove();
+                // Keep at least one empty row
+                if (ul.children.length === 0) addItem(card, '');
+            };
+            // Enter key adds a new item below
+            li.querySelector('input').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addItem(card, '');
+                    // Focus the newly added input
+                    const newInput = ul.lastElementChild.querySelector('input');
+                    if (newInput) newInput.focus();
+                }
+            });
+            ul.appendChild(li);
+        }
+
+        function esc(s) {
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+
+        function collectData() {
+            const lists = [];
+            listsEl.querySelectorAll('.list-card').forEach(card => {
+                const title = card.querySelector('.list-header input').value;
+                const items = [];
+                card.querySelectorAll('.items-list input').forEach(inp => {
+                    const v = inp.value.trim();
+                    if (v) items.push(v);
+                });
+                lists.push({ title, items });
+            });
+            return {
+                title: document.getElementById('title').value,
+                listStyle: document.getElementById('listStyle').value,
+                fontSize: document.getElementById('fontSize').value,
+                lists,
+            };
+        }
+
+        async function load() {
+            try {
+                const res = await fetch('/api/todo');
+                const data = await res.json();
+                document.getElementById('title').value = data.title || '';
+                document.getElementById('listStyle').value = data.listStyle || 'disc';
+                document.getElementById('fontSize').value = data.fontSize || 'normal';
+                if (data.lists && data.lists.length > 0) {
+                    data.lists.forEach(l => createListCard(l.title, l.items));
+                } else {
+                    createListCard('', []);
+                }
+            } catch {
+                createListCard('', []);
+            }
+        }
+
+        document.getElementById('addListBtn').onclick = () => {
+            if (listsEl.children.length >= MAX_LISTS) {
+                showToast('Maximum 3 lists', 'error');
+                return;
+            }
+            createListCard('', []);
+        };
+
+        document.getElementById('saveBtn').onclick = async () => {
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true;
+            btn.textContent = 'Updating...';
+            try {
+                const res = await fetch('/api/todo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(collectData()),
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast('Display updated', 'success');
+                } else {
+                    showToast(data.error || 'Update failed', 'error');
+                }
+            } catch {
+                showToast('Network error', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Update Display';
+            }
+        };
+
+        load();
+    </script>
+</body>
+</html>

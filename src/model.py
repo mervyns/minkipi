@@ -20,13 +20,14 @@ class RefreshInfo:
         loop (str): Loop name if refresh_type is 'Loop'.
     """
 
-    def __init__(self, refresh_type, plugin_id, refresh_time, image_hash, loop=None):
+    def __init__(self, refresh_type, plugin_id, refresh_time, image_hash, loop=None, instance_id=None):
         """Initialize RefreshInfo instance."""
         self.refresh_time = refresh_time
         self.image_hash = image_hash
         self.refresh_type = refresh_type
         self.plugin_id = plugin_id
         self.loop = loop
+        self.instance_id = instance_id
 
     def get_refresh_datetime(self):
         """Returns the refresh time as a datetime object or None if not set."""
@@ -44,6 +45,8 @@ class RefreshInfo:
         }
         if self.loop:
             refresh_dict["loop"] = self.loop
+        if self.instance_id:
+            refresh_dict["instance_id"] = self.instance_id
         return refresh_dict
 
     @classmethod
@@ -53,7 +56,8 @@ class RefreshInfo:
             image_hash=data.get("image_hash"),
             refresh_type=data.get("refresh_type"),
             plugin_id=data.get("plugin_id"),
-            loop=data.get("loop")
+            loop=data.get("loop"),
+            instance_id=data.get("instance_id")
         )
 
 class LoopManager:
@@ -198,12 +202,25 @@ class Loop:
         self.start_time = start_time
         self.end_time = end_time
         self.plugin_order = [PluginReference.from_dict(p) for p in (plugin_order or [])]
+        self._ensure_unique_instance_ids()
         self.current_plugin_index = current_plugin_index
         self.randomize = randomize
         self.next_plugin_index = next_plugin_index  # Pre-computed next plugin
 
         # Cache time range calculation to avoid repeated string parsing
         self._cached_time_range_minutes = None
+
+    def _ensure_unique_instance_ids(self):
+        """Ensure every plugin reference has a unique instance_id.
+
+        Older configs may not include instance_id and may fall back to plugin_id,
+        which causes collisions when the same plugin appears multiple times.
+        """
+        seen = set()
+        for ref in self.plugin_order:
+            if not ref.instance_id or ref.instance_id in seen:
+                ref.instance_id = f"{ref.plugin_id}_{uuid.uuid4().hex[:6]}"
+            seen.add(ref.instance_id)
 
     def is_active(self, current_time):
         """Check if the loop is active at the given time."""
