@@ -1,0 +1,24 @@
+{% include 'calendar/settings.html' %}
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const viewModeInput = document.getElementById('viewMode');
+    if (viewModeInput) {
+        viewModeInput.value = 'timeGridWeek';
+    }
+
+    const viewSelector = document.getElementById('viewSelector');
+    if (viewSelector) {
+        const layoutGroup = viewSelector.closest('.form-group');
+        if (layoutGroup) {
+            layoutGroup.style.display = 'none';
+        } else {
+            viewSelector.style.display = 'none';
+        }
+    }
+
+    if (typeof updateViewDependentOptions === 'function') {
+        updateViewDependentOptions('timeGridWeek');
+    }
+});
+</script>
