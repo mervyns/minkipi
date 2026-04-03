@@ -946,13 +946,23 @@ class LoopRefresh(RefreshAction):
         self.plugin_reference = plugin_reference
         self.force = force
 
+    def _get_instance_id(self):
+        """Return a safe instance identifier for this plugin reference.
+
+        Falls back to plugin_id for older refs/tests that don't define instance_id.
+        """
+        instance_id = getattr(self.plugin_reference, "instance_id", None)
+        if isinstance(instance_id, str) and instance_id:
+            return instance_id
+        return self.plugin_reference.plugin_id
+
     def get_refresh_info(self):
         """Return refresh metadata as a dictionary."""
         return {
             "refresh_type": "Loop",
             "loop": self.loop.name,
             "plugin_id": self.plugin_reference.plugin_id,
-            "instance_id": self.plugin_reference.instance_id
+            "instance_id": self._get_instance_id()
         }
 
     def get_plugin_id(self):
@@ -969,7 +979,7 @@ class LoopRefresh(RefreshAction):
         always generate a new image to get a different random selection.
         """
         # Determine the file path for the plugin's image
-        plugin_image_path = os.path.join(device_config.plugin_image_dir, f"loop_{self.plugin_reference.instance_id}.jpg")
+        plugin_image_path = os.path.join(device_config.plugin_image_dir, f"loop_{self._get_instance_id()}.jpg")
 
         # Check if this plugin has randomization enabled
         settings = self.plugin_reference.plugin_settings or {}

@@ -9,6 +9,26 @@ import requests  # Still needed for exception handling
 logger = logging.getLogger(__name__)
 loops_bp = Blueprint("loops", __name__)
 
+def _find_plugin_ref(loop, instance_id=None, plugin_id=None):
+    """Find a plugin reference in a loop by instance_id, with plugin_id fallback.
+
+    Legacy API calls may still send only plugin_id. In that case we match the
+    first entry with that plugin_id for backward compatibility.
+    """
+    plugin_order = getattr(loop, "plugin_order", None)
+    if not isinstance(plugin_order, list):
+        return None
+
+    if instance_id:
+        ref = next((p for p in plugin_order if getattr(p, "instance_id", None) == instance_id), None)
+        if ref:
+            return ref
+
+    if plugin_id:
+        return next((p for p in plugin_order if p.plugin_id == plugin_id), None)
+
+    return None
+
 @loops_bp.route('/loops')
 def loops_page():
     """Main loops configuration page"""
@@ -121,13 +141,16 @@ def remove_plugin_from_loop():
 
     data = request.json or {}
     loop_name = data.get("loop_name")
-    instance_id = data.get("instance_id") or data.get("plugin_id")
+    instance_id = data.get("instance_id")
+    plugin_id = data.get("plugin_id")
 
     loop = loop_manager.get_loop(loop_name)
     if not loop:
         return jsonify({"error": "Loop not found"}), 404
 
-    if not loop.remove_plugin(instance_id):
+    plugin_ref = _find_plugin_ref(loop, instance_id=instance_id, plugin_id=plugin_id)
+    remove_id = plugin_ref.instance_id if plugin_ref else (instance_id or plugin_id)
+    if not remove_id or not loop.remove_plugin(remove_id):
         return jsonify({"error": "Plugin not found in loop"}), 404
 
     device_config.write_config()
@@ -185,7 +208,8 @@ def update_plugin_settings():
 
     data = request.json or {}
     loop_name = data.get("loop_name")
-    instance_id = data.get("instance_id") or data.get("plugin_id")
+    instance_id = data.get("instance_id")
+    plugin_id = data.get("plugin_id")
     plugin_settings = data.get("plugin_settings", {})
     refresh_interval = data.get("refresh_interval_seconds")
 
@@ -194,7 +218,7 @@ def update_plugin_settings():
         return jsonify({"error": "Loop not found"}), 404
 
     # Find and update plugin reference
-    plugin_ref = next((ref for ref in loop.plugin_order if ref.instance_id == instance_id), None)
+    plugin_ref = _find_plugin_ref(loop, instance_id=instance_id, plugin_id=plugin_id)
     if not plugin_ref:
         return jsonify({"error": "Plugin not found in loop"}), 404
 
@@ -296,14 +320,15 @@ def refresh_plugin_now():
 
     data = request.json or {}
     loop_name = data.get("loop_name")
-    instance_id = data.get("instance_id") or data.get("plugin_id")
+    instance_id = data.get("instance_id")
+    plugin_id = data.get("plugin_id")
 
     loop = loop_manager.get_loop(loop_name)
     if not loop:
         return jsonify({"error": "Loop not found"}), 404
 
     # Find the plugin reference in the loop
-    plugin_ref = next((ref for ref in loop.plugin_order if ref.instance_id == instance_id), None)
+    plugin_ref = _find_plugin_ref(loop, instance_id=instance_id, plugin_id=plugin_id)
     if not plugin_ref:
         return jsonify({"error": "Plugin not found in loop"}), 404
 
